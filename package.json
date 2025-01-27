@@ -1,0 +1,22 @@
+{
+  "name": "uwais-telur",
+  "version": "1.0.0",
+  "description": "Aplikasi Transaksi Penjualan - Uwais Telur",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nopall-Donat/uwais-telur.git"
+  },
+  "author": "nopall-donat",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Nopall-Donat/uwais-telur/issues"
+  },
+  "homepage": "https://github.com/Nopall-Donat/uwais-telur#readme",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

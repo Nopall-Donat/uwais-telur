@@ -1,0 +1,8 @@
+Revisi APP:
+1. Daftar Pelanggan
+2. Daftar Harga - merek - kode merk
+3. Daftar Penjualan
+4. Penjualan Harian
+5. kategori (Lunas, DP, Belum Dibayar)
+6. tampilan jumlah bayar pada nota.
+7. 
