@@ -345,6 +345,7 @@ h6 {
 --------------------------------------------------------------*/
 .logo {
   line-height: 1;
+  text-align: center;
 }
 
 @media (min-width: 1200px) {
