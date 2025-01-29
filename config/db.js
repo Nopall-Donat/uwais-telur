@@ -1,8 +1,10 @@
 // const { Sequelize } = require('sequelize');
+// const config = require('./config');
 
 // const sequelize = new Sequelize({
 //     dialect: 'sqlite',
-//     storage: './data/uwais-telur.sqlite',
+//     storage: config.database.storage || './data/uwais-telur.sqlite',
+//     logging: config.env === 'development' ? console.log : false
 // });
 
 // const connectDB = async () => {

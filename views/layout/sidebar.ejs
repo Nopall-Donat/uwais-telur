@@ -3,36 +3,36 @@
     <ul class="sidebar-nav" id="sidebar-nav">
 
         <li class="nav-item">
-            <a class="nav-link collapsed" href="/">
+            <a class="nav-link" href="/">
                 <i class="bi bi-grid"></i>
                 <span>Dashboard</span>
             </a>
         </li><!-- End Dashboard Nav -->
 
         <li class="nav-item">
-            <a class="nav-link collapsed" href="/">
+            <a class="nav-link collapsed" href="/transaksi">
                 <i class="bi bi-cart4"></i>
                 <span>Transaksi Harian</span>
             </a>
-        </li><!-- End Dashboard Nav -->
+        </li><!-- End Transaksi Harian -->
 
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
                 <i class="bi bi-journal-text"></i><span>Transaksi</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+            <ul id="forms-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 <li>
-                    <a href="">
+                    <a href="/daftar-penjualan">
                         <i class="bi bi-circle"></i><span>Daftar Penjualan</span>
                     </a>
                 </li>
                 <li>
-                    <a href="">
+                    <a href="/daftar-pembelian">
                         <i class="bi bi-circle"></i><span>Daftar Pembelian</span>
                     </a>
                 </li>
                 <li>
-                    <a href="">
+                    <a href="/daftar-stok">
                         <i class="bi bi-circle"></i><span>Daftar Stok Barang</span>
                     </a>
                 </li>
@@ -67,54 +67,3 @@
 
 </aside>
 <!-- End Sidebar-->
-
-<script>
-// Fungsi untuk menyimpan state dropdown ke localStorage
-function saveDropdownState(dropdownId, isOpen) {
-    localStorage.setItem(dropdownId, isOpen);
-}
-
-// Fungsi untuk mendapatkan state dropdown dari localStorage
-function getDropdownState(dropdownId) {
-    // Jika tidak ada state tersimpan, kembalikan false (tertutup)
-    return localStorage.getItem(dropdownId) === 'true' ? true : false;
-}
-
-// Fungsi untuk menginisialisasi dropdown berdasarkan state yang tersimpan
-function initializeDropdowns() {
-    const dropdowns = ['forms-nav', 'tables-nav'];
-    
-    dropdowns.forEach(dropdownId => {
-        const dropdownElement = document.getElementById(dropdownId);
-        const isOpen = getDropdownState(dropdownId);
-        const parentNavLink = dropdownElement.previousElementSibling;
-        
-        if (isOpen) {
-            dropdownElement.classList.add('show');
-            if (parentNavLink) {
-                parentNavLink.classList.remove('collapsed');
-                parentNavLink.setAttribute('aria-expanded', 'true');
-            }
-        } else {
-            dropdownElement.classList.remove('show');
-            if (parentNavLink) {
-                parentNavLink.classList.add('collapsed');
-                parentNavLink.setAttribute('aria-expanded', 'false');
-            }
-        }
-    });
-}
-
-// Event listener untuk dropdown
-document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(button => {
-    button.addEventListener('click', function() {
-        const target = this.getAttribute('data-bs-target').replace('#', '');
-        const targetElement = document.getElementById(target);
-        const isCurrentlyOpen = !targetElement.classList.contains('show');
-        saveDropdownState(target, isCurrentlyOpen);
-    });
-});
-
-// Jalankan inisialisasi saat halaman dimuat
-document.addEventListener('DOMContentLoaded', initializeDropdowns);
-</script>

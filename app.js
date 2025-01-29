@@ -1,39 +1,43 @@
 const express = require('express');
 const path = require('path');
-// const { connectDB } = require('./config/db');
-// const productRoutes = require('./routes/productRoutes');
-// const transactionRoutes = require('./routes/transactionRoutes');
+const config = require('./config/config');
+const pageRoutes = require('./routes/pageRoutes');
+const assetsMiddleware = require('./middleware/assetsMiddleware');
+const loggerMiddleware = require('./middleware/loggerMiddleware');
+const errorHandler = require('./middleware/errorMiddleware');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 
-// // Koneksi ke database
-// connectDB();
-
+app.use(loggerMiddleware);
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(express.static(path.join(__dirname, ''))); // Untuk file statis (CSS, gambar)
-// Middleware untuk file statis
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use('/assets', assetsMiddleware);
 
-// Set view engine menjadi EJS
+// View Engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Route untuk mengarahkan ke index.html
-// app.get('/', (req, res) => {
-//     res.render(path.join(__dirname, 'views', 'index.ejs'));
-// });  
+// Routes
 app.get('/', (req, res) => {
     res.render('index', { title: 'Uwais Telur' });
 });
 
-// // API routes
-// app.use('/api/products', productRoutes);
-// app.use('/api/transactions', transactionRoutes);
+app.use('/', pageRoutes);
 
-// Jalankan server
+// 404 handler
+app.use((req, res, next) => {
+    const error = new Error('Halaman tidak ditemukan');
+    error.status = 404;
+    next(error);
+});
+
+// Error handler
+app.use(errorHandler);
+
+// Server
 app.listen(PORT, () => {
-    console.log(`Server berjalan di http://localhost:${PORT}`);
+    console.log(`Server berjalan di mode ${config.env}`);
+    console.log(`http://localhost:${PORT}`);
 });
