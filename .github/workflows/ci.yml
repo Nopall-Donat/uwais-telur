@@ -3,8 +3,8 @@ name: Node.js CI for Branch Workflows
 on:
   push:
     branches:
-      - front-end
-      - back-end
+      - frontend
+      - backend
   pull_request:
     branches:
       - main
