@@ -2,7 +2,6 @@ const express = require('express');
 const path = require('path');
 const config = require('./config/config');
 const pageRoutes = require('./routes/pageRoutes');
-const assetsMiddleware = require('./middleware/assetsMiddleware');
 const loggerMiddleware = require('./middleware/loggerMiddleware');
 const errorHandler = require('./middleware/errorMiddleware');
 
@@ -10,10 +9,10 @@ const app = express();
 const PORT = config.port;
 
 app.use(loggerMiddleware);
-// Middleware
+// Static files middleware
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/assets', assetsMiddleware);
 
 // View Engine
 app.set('view engine', 'ejs');

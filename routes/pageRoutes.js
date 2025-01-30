@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // Dashboard
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
     try {
         res.render('index', { 
             title: 'Dashboard - Uwais Telur'
