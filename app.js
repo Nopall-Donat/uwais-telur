@@ -1,9 +1,9 @@
 const express = require('express');
 const path = require('path');
 const config = require('./config/config');
-const pageRoutes = require('./routes/pageRoutes');
-const loggerMiddleware = require('./middleware/loggerMiddleware');
-const errorHandler = require('./middleware/errorMiddleware');
+const pageRoutes = require('./API/routes/pageRoutes');
+const loggerMiddleware = require('./API/middleware/loggerMiddleware');
+const errorHandler = require('./API/middleware/errorMiddleware');
 
 const app = express();
 const PORT = config.port;
