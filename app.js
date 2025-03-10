@@ -9,8 +9,16 @@ const app = express();
 const PORT = config.port;
 
 app.use(loggerMiddleware);
-// Static files middleware
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+// Static files middleware dengan custom 404
+app.use('/assets', express.static(path.join(__dirname, 'assets'), {
+    fallthrough: false // Akan mengembalikan 404 jika file tidak ditemukan
+}), (err, req, res, next) => {
+    if (err.status === 404) {
+        console.log(`Asset tidak ditemukan: ${req.path}`);
+        return res.status(404).send('Asset tidak ditemukan');
+    }
+    next(err);
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
