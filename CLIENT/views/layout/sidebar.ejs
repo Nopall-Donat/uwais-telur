@@ -2,66 +2,55 @@
 
     <ul class="sidebar-nav" id="sidebar-nav">
 
+        <li class="nav-heading">Transaksi</li>
+        <!-- Sales -->
         <li class="nav-item">
-            <a class="nav-link" href="/">
-                <i class="bi bi-grid"></i>
-                <span>Dashboard</span>
-            </a>
-        </li><!-- End Dashboard Nav -->
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="/transaksi">
+            <a class="nav-link collapsed" href="/">
                 <i class="bi bi-cart4"></i>
-                <span>Transaksi Harian</span>
+                <span>Transaksi</span>
             </a>
-        </li><!-- End Transaksi Harian -->
-
+        </li>
+        
+        <!-- Customers -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-journal-text"></i><span>Transaksi</span><i class="bi bi-chevron-down ms-auto"></i>
+            <a class="nav-link collapsed" href="/customers">
+                <i class="ri ri-contacts-line"></i>
+                <span>Data Pelanggan</span>
             </a>
-            <ul id="forms-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li>
-                    <a href="/daftar-penjualan">
-                        <i class="bi bi-circle"></i><span>Daftar Penjualan</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/daftar-pembelian">
-                        <i class="bi bi-circle"></i><span>Daftar Pembelian</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/daftar-stok">
-                        <i class="bi bi-circle"></i><span>Daftar Stok Barang</span>
-                    </a>
-                </li>
-            </ul>
-        </li><!-- End Forms Nav -->
-
-        <!-- <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-layout-text-window-reverse"></i><span>Laporan</span><i
-                    class="bi bi-chevron-down ms-auto"></i>
+        </li>      
+        
+        <li class="nav-heading">Pembelian</li>
+        <!-- Purchases -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="/purchases">
+                <i class="ri ri-shopping-cart-2-line"></i>
+                <span>Pembelian</span>
             </a>
-            <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-                <li>
-                    <a href="">
-                        <i class="bi bi-circle"></i><span>Laporan Penjualan</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="">
-                        <i class="bi bi-circle"></i><span>Laporan Pembelian</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="">
-                        <i class="bi bi-circle"></i><span>Laporan Stok Barang</span>
-                    </a>
-                </li>
-            </ul>
-        </li>End Tables Nav -->
+        </li>
+        <!-- Supplier -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="/suppliers">
+                <i class="ri ri-truck-line"></i>
+                <span>Data Supplier</span>
+            </a>
+        </li>        
+        <!-- Items -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="/items">
+                <i class="bx bx-droplet"></i>
+                <span>Data Barang</span>
+            </a>
+        </li>
+        
+        <li class="nav-heading">Administrator</li>
+        <!-- Admins -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="/admins">
+                <i class="ri ri-admin-fill"></i>
+                <span>Data Admin</span>
+            </a>
+        </li>        
+        
 
     </ul>
 

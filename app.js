@@ -1,16 +1,25 @@
 const express = require('express');
 const path = require('path');
+const morgan = require('morgan');
+const helmet = require('helmet');
 const config = require('./config/config');
-const pageRoutes = require('./API/routes/pageRoutes');
+
+// Routes API
+const pageRoutes = require('./routes/CLIENT/pageRoutes');
 const loggerMiddleware = require('./API/middleware/loggerMiddleware');
 const errorHandler = require('./API/middleware/errorMiddleware');
 
 const app = express();
 const PORT = config.port;
 
-app.use(loggerMiddleware);
 // Static files middleware dengan custom 404
-app.use('/assets', express.static(path.join(__dirname, 'assets'), {
+app.use(loggerMiddleware);
+app.use(helmet());
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/assets', express.static(path.join(__dirname, 'CLIENT', 'assets'), {
     fallthrough: false // Akan mengembalikan 404 jika file tidak ditemukan
 }), (err, req, res, next) => {
     if (err.status === 404) {
@@ -19,28 +28,19 @@ app.use('/assets', express.static(path.join(__dirname, 'assets'), {
     }
     next(err);
 });
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// View Engine
+// Set view engine dan folder views untuk EJS
+app.set('views', path.join(__dirname, 'CLIENT', 'views'));
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
 
 // Routes
-app.get('/', (req, res) => {
-    res.render('index', { title: 'Uwais Telur' });
-});
-
 app.use('/', pageRoutes);
 
-// 404 handler
+// ERROR handler
 app.use((req, res, next) => {
-    const error = new Error('Halaman tidak ditemukan');
-    error.status = 404;
-    next(error);
+    res.status(404).render('error', { title: "Halaman Tidak Ditemukan" });
 });
 
-// Error handler
 app.use(errorHandler);
 
 // Server

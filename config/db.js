@@ -1,19 +1,19 @@
-// const { Sequelize } = require('sequelize');
-// const config = require('./config');
+const { Sequelize } = require('sequelize');
+const config = require('./config');
 
-// const sequelize = new Sequelize({
-//     dialect: 'sqlite',
-//     storage: config.database.storage || './data/uwais-telur.sqlite',
-//     logging: config.env === 'development' ? console.log : false
-// });
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: config.database.storage || './data/uwaistelur.db',
+    logging: config.env === 'development' ? console.log : false
+});
 
-// const connectDB = async () => {
-//     try {
-//         await sequelize.authenticate();
-//         console.log('Database terhubung!');
-//     } catch (error) {
-//         console.error('Koneksi database gagal:', error);
-//     }
-// };
+const connectDB = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('Database terhubung!');
+    } catch (error) {
+        console.error('Koneksi database gagal:', error);
+    }
+};
 
-// module.exports = { sequelize, connectDB };
+module.exports = { sequelize, connectDB };
