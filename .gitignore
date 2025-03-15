@@ -1,5 +1,6 @@
 # Dependency directories
 node_modules/
+database/
 
 # Logs
 logs
@@ -32,9 +33,7 @@ coverage/
 .DS_Store
 
 # Build output
-dist/
-build/
-out/
+assets/
 
 # Cache directories
 .cache/

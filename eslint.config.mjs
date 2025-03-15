@@ -6,10 +6,7 @@ export default [
   {
     ignores: [
       "**/node_modules/**",
-      "**/assets/vendor/**",
-      "**/dist/**",
-      "**/build/**",
-      "assets/js/main.js",
+      "**/assets/**",
       ".git/"
     ]
   },

@@ -1,13 +1,21 @@
 const express = require('express');
-const path = require('path');
 const morgan = require('morgan');
+const path = require('path');
 const helmet = require('helmet');
 const config = require('./config/config');
 
 // Routes API
-const pageRoutes = require('./routes/CLIENT/pageRoutes');
-const loggerMiddleware = require('./API/middleware/loggerMiddleware');
-const errorHandler = require('./API/middleware/errorMiddleware');
+const loggerMiddleware = require('./backend/middleware/loggerMiddleware');
+const errorHandler = require('./backend/middleware/errorMiddleware');
+
+// Import route
+const salesRoutes = require('./backend/routes/sales');
+const purchasesRoutes = require('./backend/routes/purchases');
+const itemsRoutes = require('./backend/routes/items');
+const customersRoutes = require('./backend/routes/customers');
+const suppliersRoutes = require('./backend/routes/suppliers');
+const adminsRoutes = require('./backend/routes/admins');
+
 
 const app = express();
 const PORT = config.port;
@@ -19,7 +27,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/assets', express.static(path.join(__dirname, 'CLIENT', 'assets'), {
+app.use('/assets', express.static(path.join(__dirname, 'frontend', 'assets'), {
     fallthrough: false // Akan mengembalikan 404 jika file tidak ditemukan
 }), (err, req, res, next) => {
     if (err.status === 404) {
@@ -30,15 +38,24 @@ app.use('/assets', express.static(path.join(__dirname, 'CLIENT', 'assets'), {
 });
 
 // Set view engine dan folder views untuk EJS
-app.set('views', path.join(__dirname, 'CLIENT', 'views'));
+app.set('views', path.join(__dirname, 'frontend', 'views'));
 app.set('view engine', 'ejs');
 
 // Routes
-app.use('/', pageRoutes);
+app.use('/', salesRoutes);
+app.use('/purchases', purchasesRoutes);
+app.use('/items', itemsRoutes);
+app.use('/customers', customersRoutes);
+app.use('/suppliers', suppliersRoutes);
+app.use('/admins', adminsRoutes);
 
 // ERROR handler
 app.use((req, res, next) => {
     res.status(404).render('error', { title: "Halaman Tidak Ditemukan" });
+});
+app.use((err, req, res) => {
+    console.error(err);
+    res.status(500).send('Terjadi kesalahan pada server!');
 });
 
 app.use(errorHandler);
