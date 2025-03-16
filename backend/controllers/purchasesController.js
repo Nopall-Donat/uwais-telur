@@ -3,5 +3,5 @@ exports.getAllPurchases = (req, res) => {
 };
 
 exports.getDetailPurchase = (req, res) => {
-    res.render('purchases/detail', { title: 'Detail Pembelian', purchaseId: req.params.id });
+    res.render('purchases/details', { title: 'Detail Pembelian', purchaseId: req.params.id });
 };

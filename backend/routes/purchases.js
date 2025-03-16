@@ -3,6 +3,6 @@ const router = express.Router();
 const purchasesController = require('../controllers/purchasesController');
 
 router.get('/', purchasesController.getAllPurchases);
-router.get('/:id/detail', purchasesController.getDetailPurchase);
+router.get('/:id/details', purchasesController.getDetailPurchase);
 
 module.exports = router;

@@ -6,7 +6,7 @@ const config = require('./config/config');
 
 // Routes API
 const loggerMiddleware = require('./backend/middleware/loggerMiddleware');
-const errorHandler = require('./backend/middleware/errorMiddleware');
+const errorMiddleware = require('./backend/middleware/errorMiddleware');
 
 // Import route
 const salesRoutes = require('./backend/routes/sales');
@@ -15,7 +15,6 @@ const itemsRoutes = require('./backend/routes/items');
 const customersRoutes = require('./backend/routes/customers');
 const suppliersRoutes = require('./backend/routes/suppliers');
 const adminsRoutes = require('./backend/routes/admins');
-
 
 const app = express();
 const PORT = config.port;
@@ -49,16 +48,15 @@ app.use('/customers', customersRoutes);
 app.use('/suppliers', suppliersRoutes);
 app.use('/admins', adminsRoutes);
 
-// ERROR handler
+// Middleware untuk menangani halaman yang tidak ditemukan (404)
 app.use((req, res, next) => {
-    res.status(404).render('error', { title: "Halaman Tidak Ditemukan" });
-});
-app.use((err, req, res) => {
-    console.error(err);
-    res.status(500).send('Terjadi kesalahan pada server!');
+    const error = new Error('Halaman tidak ditemukan');
+    error.status = 404;
+    next(error); // Kirim error ke errorMiddleware
 });
 
-app.use(errorHandler);
+// Middleware error handling
+app.use(errorMiddleware);
 
 // Server
 app.listen(PORT, () => {

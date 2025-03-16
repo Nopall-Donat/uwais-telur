@@ -10,7 +10,7 @@ const config = {
         user: process.env.DB_USER,
         password: process.env.DB_PASS,
         name: process.env.DB_NAME,
-        storage: process.env.DB_STORAGE || './data/uwais-telur.sqlite'
+        storage: process.env.DB_STORAGE
     },
     
     // JWT

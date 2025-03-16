@@ -1,95 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <%- include('../layout/header') %>
 
     <body>
-
         <%- include('../layout/navbar') %>
-
-            <!-- ======= Sidebar ======= -->
             <%- include('../layout/sidebar') %>
 
-
                 <main id="main" class="main">
-
                     <div class="pagetitle">
                         <h1>
                             <%= title %>
                         </h1>
                         <nav>
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="/">Home</a></li>
-                                <li class="breadcrumb-item">Tables</li>
-                                <li class="breadcrumb-item active">Data</li>
+                                <li class="breadcrumb-item"><a href="/">Beranda</a></li>
+                                <li class="breadcrumb-item"><a href="/sales">Transaksi</a></li>
+                                <li class="breadcrumb-item active">Detail Transaksi</li>
                             </ol>
                         </nav>
                     </div><!-- End Page Title -->
 
                     <section class="section">
                         <div class="row">
-                            
                             <div class="col-12">
-                                <div class="card recent-sales overflow-auto">
+                                <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Detail Transaksi</h5>
-
-                                        <% if (transactions && transactions.length> 0) { %>
-                                            <table class="table table-hover table-responsive mt-3">
-                                                <thead>
-                                                    <tr>
-                                                        <th scope="col">ID Transaksi</th>
-                                                        <th scope="col">ID Admin</th>
-                                                        <th scope="col">ID Customer</th>
-                                                        <th scope="col">Total Amount</th>
-                                                        <th scope="col">Waktu Transaksi</th>
-                                                        <th scope="col">Status</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <% transactions.forEach(transaction=> { %>
-                                                        <tr>
-                                                            <td>
-                                                                <%= transaction.sales_transaction_id %>
-                                                            </td>
-                                                            <td>
-                                                                <%= transaction.admin_id %>
-                                                            </td>
-                                                            <td>
-                                                                <%= transaction.customer_id %>
-                                                            </td>
-                                                            <td>
-                                                                <%= transaction.total_amount %>
-                                                            </td>
-                                                            <td>
-                                                                <%= transaction.transaction_time %>
-                                                            </td>
-                                                            <td><span class="badge bg-success">
-                                                                    <%= transaction.status %>
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                        <% }); %>
-                                                </tbody>
-                                            </table>
-                                            <!-- End Table -->
-                                            <% } else { %>
-                                                <p>Tidak ada data transaksi penjualan.</p>
-                                                <% } %>
-
-
-                                            </div>
-                                            
+                                        <!-- Informasi Header Transaksi -->
+                                        <h5 class="card-title">Detail Transaksi <%= detail.sales_transaction_id %>
+                                        </h5>
+                                        <div class="mb-4">
+                                            <p><strong>Nama:</strong>
+                                                <%= detail.customer_name %>
+                                            </p>
+                                            <p><strong>Alamat:</strong>
+                                                <%= detail.customer_address %>
+                                            </p>
+                                            <p><strong>No. HP:</strong>
+                                                <%= detail.customer_phone %>
+                                            </p>
                                         </div>
+
+                                        <!-- Form untuk CRUD Order Pesanan -->
+                                        <form id="ordersForm"
+                                            action="/sales/<%= detail.sales_transaction_id %>/update-orders"
+                                            method="post">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>ID Pesanan</th>
+                                                            <th>Kode Item</th>
+                                                            <th>Tipe Item</th>
+                                                            <th>Jumlah Pesanan</th>
+                                                            <th>Harga Satuan</th>
+                                                            <th>Total Harga</th>
+                                                            <th>Waktu Pesan</th>
+                                                            <th>Aksi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="ordersTableBody">
+                                                        <% if (detail.orders && detail.orders.length> 0) { %>
+                                                            <% detail.orders.forEach(function(order, index){ %>
+                                                                <tr>
+                                                                    <td>
+                                                                        <input type="text"
+                                                                            name="orders[<%= index %>][sales_order_id]"
+                                                                            value="<%= order.sales_order_id %>"
+                                                                            class="form-control" readonly>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text"
+                                                                            name="orders[<%= index %>][item_code]"
+                                                                            value="<%= order.item_code %>"
+                                                                            class="form-control item-code">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text"
+                                                                            name="orders[<%= index %>][item_type]"
+                                                                            value="<%= order.item_type %>"
+                                                                            class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number"
+                                                                            name="orders[<%= index %>][quantity]"
+                                                                            value="<%= order.quantity %>"
+                                                                            class="form-control">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" step="0.01"
+                                                                            name="orders[<%= index %>][unit_price]"
+                                                                            value="<%= order.unit_price %>"
+                                                                            class="form-control unit-price">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" step="0.01"
+                                                                            name="orders[<%= index %>][subtotal_price]"
+                                                                            value="<%= order.subtotal_price %>"
+                                                                            class="form-control" readonly>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text"
+                                                                            name="orders[<%= index %>][order_time]"
+                                                                            value="<%= new Date(order.order_time).toLocaleString() %>"
+                                                                            class="form-control" readonly>
+                                                                    </td>
+                                                                    <td>
+                                                                        <button type="button"
+                                                                            class="btn btn-danger btn-sm remove-order">Hapus</button>
+                                                                    </td>
+                                                                </tr>
+                                                                <% }) %>
+                                                                    <% } %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <button type="button" class="btn btn-secondary" id="addRow">Tambah Baris
+                                                    Baru</button>
+                                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                            </div>
+                                        </form>
+
+                                        <!-- Ringkasan Pembayaran -->
+                                        <div class="mt-4">
+                                            <h4>Total Tagihan: Rp <%= detail.total_amount.toLocaleString() %>
+                                            </h4>
+                                            <p>Jumlah Bayar: Rp <%= detail.payments && detail.payments.length ?
+                                                    detail.payments.reduce((sum, p)=> sum + p.payment_amount,
+                                                    0).toLocaleString()
+                                                    : '0' %></p>
+                                            <p>Status: <%= detail.status %>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
-
                 </main><!-- End #main -->
 
-                <!-- ======= Footer ======= -->
                 <%- include('../layout/footer') %>
 
+                    <!-- Script JavaScript -->
+                    <script>
+                        // Fungsi untuk generate ID Pesanan default (misal dengan timestamp atau angka acak)
+                        function generateOrderId() {
+                            return 'SO-' + Date.now();
+                        }
+
+                        // Tambah baris baru pada tabel order
+                        document.getElementById('addRow').addEventListener('click', function () {
+                            const tableBody = document.getElementById('ordersTableBody');
+                            const rowCount = tableBody.rows.length;
+                            const newRow = document.createElement('tr');
+                            newRow.innerHTML = `
+                                <td>
+                                    <input type="text" name="orders[${rowCount}][sales_order_id]" value="${generateOrderId()}" class="form-control" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" name="orders[${rowCount}][item_code]" value="" class="form-control item-code" placeholder="Masukkan kode item">
+                                </td>
+                                <td>
+                                    <input type="text" name="orders[${rowCount}][item_type]" value="" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="number" name="orders[${rowCount}][quantity]" value="0" class="form-control">
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" name="orders[${rowCount}][unit_price]" value="0.00" class="form-control unit-price">
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" name="orders[${rowCount}][subtotal_price]" value="0.00" class="form-control" readonly>
+                                </td>
+                                <td>
+                                    <input type="text" name="orders[${rowCount}][order_time]" value="${new Date().toLocaleString()}" class="form-control" readonly>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm remove-order">Hapus</button>
+                                </td>
+                                `;
+                            tableBody.appendChild(newRow);
+                        });
+
+                        // Hapus baris order
+                        document.getElementById('ordersTableBody').addEventListener('click', function (e) {
+                            if (e.target && e.target.matches('.remove-order')) {
+                                e.target.closest('tr').remove();
+                            }
+                        });
+
+                        // Perhitungan subtotal secara otomatis ketika quantity atau unit price berubah
+                        document.getElementById('ordersTableBody').addEventListener('input', function (e) {
+                            if (e.target && (e.target.name.includes('quantity') || e.target.name.includes('unit_price'))) {
+                                const row = e.target.closest('tr');
+                                const quantity = parseFloat(row.querySelector('input[name*="[quantity]"]').value) || 0;
+                                const unitPrice = parseFloat(row.querySelector('input[name*="[unit_price]"]').value) || 0;
+                                const subtotalInput = row.querySelector('input[name*="[subtotal_price]"]');
+                                subtotalInput.value = (quantity * unitPrice).toFixed(2);
+                            }
+                        });
+
+                        // Fungsi untuk mengambil harga satuan berdasarkan kode item (bisa digantikan dengan AJAX)
+                        async function fetchItemPrice(itemCode) {
+                            // Simulasi: jika kode item "bbtr", harga satuan adalah 10000; jika "abc", harga 5000; default 0.
+                            const mapping = {
+                                'bbtr': 10000,
+                                'abc': 5000
+                            };
+                            return mapping[itemCode.toLowerCase()] || 0;
+                        }
+
+                        // Event listener untuk input kode item: saat tekan Enter, auto-fill harga satuan
+                        document.addEventListener('keydown', async function (e) {
+                            if (e.target && e.target.classList.contains('item-code') && e.key === 'Enter') {
+                                e.preventDefault(); // cegah submit form
+                                const itemCodeInput = e.target;
+                                const itemCode = itemCodeInput.value.trim();
+                                if (itemCode !== '') {
+                                    const price = await fetchItemPrice(itemCode);
+                                    // Cari field unit-price di baris yang sama
+                                    const row = itemCodeInput.closest('tr');
+                                    const unitPriceInput = row.querySelector('.unit-price');
+                                    unitPriceInput.value = price.toFixed(2);
+                                    // Trigger perhitungan subtotal
+                                    const quantityInput = row.querySelector('input[name*="[quantity]"]');
+                                    const quantity = parseFloat(quantityInput.value) || 0;
+                                    const subtotalInput = row.querySelector('input[name*="[subtotal_price]"]');
+                                    subtotalInput.value = (quantity * price).toFixed(2);
+                                }
+                            }
+                        });
+                    </script>
     </body>
 
 </html>
