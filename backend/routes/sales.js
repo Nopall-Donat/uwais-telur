@@ -2,15 +2,32 @@ const express = require('express');
 const router = express.Router();
 const salesController = require('../controllers/salesController');
 
-// Route untuk menampilkan daftar transaksi
-router.get('/', salesController.indexSales);
+router.get('/', salesController.viewIndexSales);
+// Mendapatkan semua transaksi
+router.get('/api', salesController.getAllSales);
 
-// Route untuk menampilkan detail transaksi (misal: saat mengklik nama pelanggan)
-router.get('/:id/detail', salesController.detailSales);
+// Mendapatkan semua transaksi (limit)
+router.get('/limit/:limit', salesController.getAllSalesLimit);
 
-// Route untuk membuat transaksi baru (header) melalui POST (misal: setelah memilih pelanggan dan klik "Save Changes")
+// Mendapatkan satu transaksi berdasarkan ID (header)
+router.get('/:id', salesController.getSalesById);
+
+// Mendapatkan detail transaksi (header + order + pembayaran)
+router.get('/details/:id', salesController.viewSalesDetail);
+
+// Membuat transaksi baru
 router.post('/create', salesController.createSales);
 
-// Anda dapat menambahkan route lain, seperti untuk update order, delete transaksi, dsb.
+// Menambahkan item ke transaksi
+router.post('/order', salesController.addOrderToSales);
+
+// Menambahkan pembayaran ke transaksi
+router.post('/payment', salesController.addPaymentToSales);
+
+// Update transaksi
+router.put('/:id', salesController.updateSales);
+
+// Hapus transaksi
+router.delete('/:id', salesController.deleteSales);
 
 module.exports = router;

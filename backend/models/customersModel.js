@@ -1,76 +1,103 @@
 const dbPromise = require('../../config/db');
 
 module.exports = {
-    /**
-     * Mengambil daftar pelanggan (ID + Name) untuk keperluan dropdown, dsb.
-     */
-    getAllCustomers: async () => {
-        const db = await dbPromise;
-        const sql = `
-        SELECT 
-            customer_id,
-            name,
-            phone_number,
-            address
-        FROM customers
-        ORDER BY name ASC
-        `;
-        const rows = await db.all(sql);
-        return rows;
+    // 1. View semua pelanggan
+    getAllCustomer: async () => {
+        try {
+            const db = await dbPromise;
+            return await db.all(`
+                SELECT *
+                FROM customers
+                ORDER BY name ASC
+            `);
+        } catch (err) {
+            console.error('customerModel.getAllCustomer error:', err);
+            throw err;
+        }
     },
 
-    /**
-     * Hanya mengambil (id, name) pelanggan untuk dropdown "pilih pelanggan".
-     */
-    getCustomerNameList: async () => {
-        const db = await dbPromise;
-        const sql = `
-        SELECT 
-            customer_id, 
-            name 
-        FROM customers
-        ORDER BY name ASC
-        `;
-        const rows = await db.all(sql);
-        return rows;
+    // 2. Get customer by ID
+    getByIdCustomer: async (id) => {
+        try {
+            const db = await dbPromise;
+            return await db.get(`
+                SELECT * FROM customers WHERE customer_id = ?
+            `, [id]);
+        } catch (err) {
+            console.error('customerModel.getByIdCustomer error:', err);
+            throw err;
+        }
     },
 
-    /**
-     * Menambahkan pelanggan baru (misal jika belum ada).
-     * Asumsi ID pelanggan sudah disiapkan (misal 'C001') di sisi Controller.
-     */
+    // 3. Get limit customer (misalnya top 10)
+    getAllLimitCustomer: async (limit = 10) => {
+        try {
+            const db = await dbPromise;
+            return await db.all(`
+                SELECT * FROM customers
+                ORDER BY name ASC
+                LIMIT ?
+            `, [limit]);
+        } catch (err) {
+            console.error('customerModel.getAllLimitCustomer error:', err);
+            throw err;
+        }
+    },
+
+    // 4. Update customer by ID
+    updateByIdCustomer: async (id, name, phoneNumber, address) => {
+        try {
+            const db = await dbPromise;
+            return await db.run(`
+                UPDATE customers
+                SET name = ?, phone_number = ?, address = ?
+                WHERE customer_id = ?
+            `, [name, phoneNumber, address, id]);
+        } catch (err) {
+            console.error('customerModel.updateByIdCustomer error:', err);
+            throw err;
+        }
+    },
+
+    // 5. Insert customer baru
     createCustomer: async (customerId, name, phoneNumber, address) => {
-        const db = await dbPromise;
-        const sql = `
-            INSERT INTO customers 
-                (customer_id, name, phone_number, address)
-            VALUES (?, ?, ?, ?)
-            `;
-        const result = await db.run(sql, [
-            customerId,
-            name,
-            phoneNumber,
-            address
-        ]);
-        return result.lastID;
+        try {
+            const db = await dbPromise;
+            return await db.run(`
+                INSERT INTO customers (customer_id, name, phone_number, address)
+                VALUES (?, ?, ?, ?)
+            `, [customerId, name, phoneNumber, address]);
+        } catch (err) {
+            console.error('customerModel.createCustomer error:', err);
+            throw err;
+        }
     },
 
-    /**
-     * Update data pelanggan (opsional).
-     */
-    updateCustomer: async (customerId, name, phoneNumber, address) => {
-        const db = await dbPromise;
-        const sql = `
-            UPDATE customers
-            SET name = ?, phone_number = ?, address = ?
-            WHERE customer_id = ?
-        `;
-        const result = await db.run(sql, [
-            name,
-            phoneNumber,
-            address,
-            customerId
-        ]);
-        return result.changes; // jumlah baris yang terpengaruh
+    // 6. Delete customer
+    deleteCustomer: async (id) => {
+        try {
+            const db = await dbPromise;
+            return await db.run(`
+                DELETE FROM customers WHERE customer_id = ?
+            `, [id]);
+        } catch (err) {
+            console.error('customerModel.deleteCustomer error:', err);
+            throw err;
+        }
+    },
+
+    // 7. Untuk dropdown
+    getCustomerNameList: async () => {
+        try {
+            const db = await dbPromise;
+            return await db.all(`
+                SELECT customer_id, name
+                FROM customers
+                ORDER BY name ASC
+            `);
+        } catch (err) {
+            console.error('customerModel.getCustomerNameList error:', err);
+            throw err;
+        }
     }
 };

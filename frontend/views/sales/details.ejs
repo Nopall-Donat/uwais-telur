@@ -26,7 +26,7 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <!-- Informasi Header Transaksi -->
-                                        <h5 class="card-title">Detail Transaksi - <%= detail.sales_transaction_id %>
+                                        <h5 class="card-title">Detail Transaksi - <%= detail.id %>
                                         </h5>
                                         <div class="mb-4">
                                             <p><strong>Nama:</strong>
@@ -42,7 +42,7 @@
 
                                         <!-- Form untuk CRUD Order Pesanan -->
                                         <form id="ordersForm"
-                                            action="/sales/<%= detail.sales_transaction_id %>/update-orders"
+                                            action="/sales/<%= detail.id %>/update-orders"
                                             method="post">
                                             <div class="table-responsive">
                                                 <table class="table table-bordered">
@@ -123,13 +123,12 @@
 
                                         <!-- Ringkasan Pembayaran -->
                                         <div class="mt-4">
-                                            <h4>Total Tagihan: Rp <%= detail.total_amount.toLocaleString() %>
+                                            <h4>Total Tagihan: Rp <%= detail.total_tagihan.toLocaleString() %>
                                             </h4>
                                             <p>Jumlah Bayar: Rp <%= detail.payments && detail.payments.length ?
                                                     detail.payments.reduce((sum, p)=> sum + p.payment_amount,
-                                                    0).toLocaleString()
-                                                    : '0' %></p>
-                                            <p>Status: <%= detail.status %>
+                                                    0).toLocaleString() : '0' %></p>
+                                            <p>Status: <%= detail.status_pembayaran %>
                                             </p>
                                         </div>
                                     </div>

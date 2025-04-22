@@ -145,7 +145,7 @@
                                             </div>
                                             <!-- End Tambah Transaksi Modal-->
                                         </div>
-                                        <% if (salesList && salesList.length> 0) { %>
+                                        <% if (sales && sales.length> 0) { %>
                                             <table class="table table-hover table-responsive mt-3">
                                                 <thead>
                                                     <tr>
@@ -161,10 +161,10 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <% salesList.forEach(sales=> { %>
+                                                    <% sales.forEach(sales=> { %>
                                                         <tr>
                                                             <td>
-                                                                <%= sales.id_transaksi %>
+                                                                <%= sales.id %>
                                                             </td>
                                                             <td>
                                                                 <%= sales.nama_pelanggan %> - <small>
@@ -196,7 +196,7 @@
                                                                 <%= sales.nama_admin %>
                                                             </td>
                                                             <td>
-                                                                <a href="/<%= sales.id_transaksi %>/detail"
+                                                                <a href="/details/<%= sales.id %>"
                                                                     class="btn btn-sm btn-primary">Detail</a>
                                                             </td>
                                                         </tr>
