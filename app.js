@@ -3,6 +3,8 @@ const morgan = require('morgan');
 const path = require('path');
 const helmet = require('helmet');
 const config = require('./config/config');
+const flash = require('connect-flash');
+const session = require('express-session');
 
 // Routes API
 const loggerMiddleware = require('./backend/middleware/loggerMiddleware');
@@ -21,10 +23,19 @@ const PORT = config.port;
 
 // Static files middleware dengan custom 404
 app.use(loggerMiddleware);
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false
+}));
 app.use(morgan('dev'));
+app.use(flash()); // Middleware untuk flash messages
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(session({
+    secret: config.session.secret,
+    resave: config.session.resave,
+    saveUninitialized: config.session.saveUninitialized
+}));
 
 app.use('/assets', express.static(path.join(__dirname, 'frontend', 'assets'), {
     fallthrough: false // Akan mengembalikan 404 jika file tidak ditemukan
@@ -42,10 +53,10 @@ app.set('view engine', 'ejs');
 
 // Routes
 app.use('/', salesRoutes);
-app.use('/purchases', purchasesRoutes);
-app.use('/items', itemsRoutes);
 app.use('/customers', customersRoutes);
+app.use('/purchases', purchasesRoutes);
 app.use('/suppliers', suppliersRoutes);
+app.use('/items', itemsRoutes);
 app.use('/admins', adminsRoutes);
 
 // Middleware untuk menangani halaman yang tidak ditemukan (404)
@@ -53,6 +64,11 @@ app.use((req, res, next) => {
     const error = new Error('Halaman tidak ditemukan');
     error.status = 404;
     next(error); // Kirim error ke errorMiddleware
+});
+
+app.use((req, res, next) => {
+    res.locals.messages = req.flash();
+    next();
 });
 
 // Middleware error handling

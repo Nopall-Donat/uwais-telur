@@ -12,9 +12,14 @@ const config = {
         name: process.env.DB_NAME,
         storage: process.env.DB_STORAGE
     },
-    
-    // JWT
-    jwtSecret: process.env.JWT_SECRET
+
+    // Session
+    session: {
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: true,
+    },
+
 };
 
 module.exports = config; 

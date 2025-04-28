@@ -1,4 +1,4 @@
-const errorMiddleware = (err, req, res) => {
+const errorMiddleware = (err, req, res, next) => {
     console.error(err.stack); // Logging error ke terminal
 
     const statusCode = err.status || 500; // Gunakan status error atau default 500

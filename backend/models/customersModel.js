@@ -16,15 +16,30 @@ module.exports = {
         }
     },
 
-    // 2. Get customer by ID
-    getByIdCustomer: async (id) => {
+    // Untuk ambil semua customer berdasarkan tanggal di ID (Pddmmyy%)
+    getCustomersByDate: async (datePart) => {
+        try {
+            const db = await dbPromise;
+            return await db.all(`
+            SELECT * FROM customers
+            WHERE customer_id LIKE ?
+        `, [`P${datePart}%`]);
+        } catch (err) {
+            console.error('customerModel.getCustomersByDate error:', err);
+            throw err;
+        }
+    },
+
+    // Untuk cari satu customer by ID
+    findCustomerById: async (id) => {
         try {
             const db = await dbPromise;
             return await db.get(`
-                SELECT * FROM customers WHERE customer_id = ?
-            `, [id]);
+            SELECT * FROM customers
+            WHERE customer_id = ?
+        `, [id]);
         } catch (err) {
-            console.error('customerModel.getByIdCustomer error:', err);
+            console.error('customerModel.findCustomerById error:', err);
             throw err;
         }
     },
@@ -60,13 +75,13 @@ module.exports = {
     },
 
     // 5. Insert customer baru
-    createCustomer: async (customerId, name, phoneNumber, address) => {
+    createCustomer: async (customerId, name, phone_number, address, createdAt, updatedAt) => {
         try {
             const db = await dbPromise;
-            return await db.run(`
-                INSERT INTO customers (customer_id, name, phone_number, address)
-                VALUES (?, ?, ?, ?)
-            `, [customerId, name, phoneNumber, address]);
+            await db.run(`
+                INSERT INTO customers (customer_id, name, phone_number, address, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `, [customerId, name, phone_number, address, createdAt, updatedAt]);
         } catch (err) {
             console.error('customerModel.createCustomer error:', err);
             throw err;

@@ -10,7 +10,7 @@ router.get('/api', salesController.getAllSales);
 router.get('/limit/:limit', salesController.getAllSalesLimit);
 
 // Mendapatkan satu transaksi berdasarkan ID (header)
-router.get('/:id', salesController.getSalesById);
+router.get('sales/:id', salesController.getSalesById);
 
 // Mendapatkan detail transaksi (header + order + pembayaran)
 router.get('/details/:id', salesController.viewSalesDetail);
@@ -25,9 +25,9 @@ router.post('/order', salesController.addOrderToSales);
 router.post('/payment', salesController.addPaymentToSales);
 
 // Update transaksi
-router.put('/:id', salesController.updateSales);
+router.put('update/:id', salesController.updateSales);
 
 // Hapus transaksi
-router.delete('/:id', salesController.deleteSales);
+router.delete('delete/:id', salesController.deleteSales);
 
 module.exports = router;

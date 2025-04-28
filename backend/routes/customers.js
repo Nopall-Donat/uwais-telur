@@ -1,29 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const ctrl = require('../controllers/customersController');
+const customersController = require('../controllers/customersController');
 
 // Halaman index pelanggan
-router.get('/', ctrl.viewIndexCustomer);
+router.get('/', customersController.viewIndexCustomer);
 
-// API list pelanggan lengkap
-router.get('/api', ctrl.getAllCustomer);
+// customer list pelanggan lengkap
+router.get('/get', customersController.getAllCustomer);
 
-// API by ID
-router.get('/api/:id', ctrl.getByIdCustomer);
+// customer by ID
+router.get('/details/:id', customersController.getByIdCustomer);
 
-// API limit
-router.get('/api-limit', ctrl.getAllLimitCustomer);
+// customer limit
+router.get('/limit', customersController.getAllLimitCustomer);
 
-// API untuk dropdown
-router.get('/api/names', ctrl.getCustomerNameList);
+// customer untuk dropdown
+router.get('/get-names', customersController.getCustomerNameList);
 
 // Tambah pelanggan
-router.post('/api', ctrl.createCustomer);
+router.post('/add', customersController.createCustomer);
 
 // Update pelanggan
-router.put('/api/:id', ctrl.updateByIdCustomer);
+router.put('/update/:id', customersController.updateByIdCustomer);
 
 // Hapus pelanggan
-router.delete('/api/:id', ctrl.deleteCustomer);
+router.get('/delete/:id', customersController.deleteCustomer);
 
 module.exports = router;
