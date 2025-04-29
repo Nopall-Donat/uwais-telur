@@ -8,7 +8,7 @@ module.exports = {
             return await db.all(`
                 SELECT *
                 FROM customers
-                ORDER BY name ASC
+                ORDER BY created_at DESC
             `);
         } catch (err) {
             console.error('customerModel.getAllCustomer error:', err);
@@ -31,43 +31,29 @@ module.exports = {
     },
 
     // Untuk cari satu customer by ID
-    findCustomerById: async (id) => {
+    getByIdCustomer: async (id) => {
         try {
             const db = await dbPromise;
             return await db.get(`
-            SELECT * FROM customers
-            WHERE customer_id = ?
-        `, [id]);
+                SELECT *
+                FROM customers
+                WHERE customer_id = ?
+            `, [id]);
         } catch (err) {
-            console.error('customerModel.findCustomerById error:', err);
-            throw err;
-        }
-    },
-
-    // 3. Get limit customer (misalnya top 10)
-    getAllLimitCustomer: async (limit = 10) => {
-        try {
-            const db = await dbPromise;
-            return await db.all(`
-                SELECT * FROM customers
-                ORDER BY name ASC
-                LIMIT ?
-            `, [limit]);
-        } catch (err) {
-            console.error('customerModel.getAllLimitCustomer error:', err);
+            console.error('customerModel.getByIdCustomer error:', err);
             throw err;
         }
     },
 
     // 4. Update customer by ID
-    updateByIdCustomer: async (id, name, phoneNumber, address) => {
+    updateByIdCustomer: async (id, name, phoneNumber, address, updatedAt) => {
         try {
             const db = await dbPromise;
             return await db.run(`
                 UPDATE customers
-                SET name = ?, phone_number = ?, address = ?
+                SET name = ?, phone_number = ?, address = ?, updated_at = ?
                 WHERE customer_id = ?
-            `, [name, phoneNumber, address, id]);
+            `, [name, phoneNumber, address, updatedAt, id]);
         } catch (err) {
             console.error('customerModel.updateByIdCustomer error:', err);
             throw err;
@@ -114,5 +100,30 @@ module.exports = {
             console.error('customerModel.getCustomerNameList error:', err);
             throw err;
         }
+    },
+
+    searchCustomers: async (searchTerm, limit) => {
+        try {
+            const db = await dbPromise;
+            const query = `
+            SELECT * FROM customers
+            WHERE 
+                name LIKE ? OR
+                phone_number LIKE ? OR
+                address LIKE ? OR
+                customer_id LIKE ? OR
+                created_at LIKE ?
+            ORDER BY created_at DESC
+            LIMIT ?
+        `;
+            const wildcardSearch = `%${searchTerm}%`;
+            return await db.all(query, [wildcardSearch, wildcardSearch, wildcardSearch, wildcardSearch, wildcardSearch, limit]);
+        } catch (err) {
+            console.error('customerModel.searchCustomers error:', err);
+            throw err;
+        }
     }
+
+
+
 };

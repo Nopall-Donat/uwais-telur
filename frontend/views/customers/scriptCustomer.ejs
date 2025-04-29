@@ -1,0 +1,94 @@
+<script>
+    function deleteCustomer(id) {
+        if (confirm('Yakin ingin menghapus pelanggan ini?')) {
+            window.location.href = '/customers/delete/' + id;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('customerForm');
+        const formAlert = document.getElementById('formAlert');
+        const modalEl = document.getElementById('tambahBaru');
+
+        // Fungsi validasi kustom
+        form.addEventListener('submit', function (e) {
+            let isValid = true;
+            // Ambil semua input
+            const inputs = ['name', 'phone_number', 'address'].map(id => document.getElementById(id));
+            // Reset styling validasi sebelumnya
+            inputs.forEach(i => {
+                i.classList.remove('is-invalid', 'is-valid');
+            });
+            formAlert.classList.add('d-none');
+
+            // Validasi masing-masing field
+            const [nameInput, phoneInput, addressInput] = inputs;
+            if (!nameInput.value.trim()) {
+                nameInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                nameInput.classList.add('is-valid');
+            }
+            const phoneVal = phoneInput.value.trim();
+            if (!/^\d{10,13}$/.test(phoneVal)) {
+                phoneInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                phoneInput.classList.add('is-valid');
+            }
+            if (!addressInput.value.trim()) {
+                addressInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                addressInput.classList.add('is-valid');
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                formAlert.innerText = 'Semua field wajib diisi dengan benar!';
+                formAlert.classList.remove('d-none');
+            }
+        });
+
+        // Reset penuh saat modal ditutup
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            // Hapus kelas validasi dari form
+            form.classList.remove('was-validated');
+            // Reset semua input dan styling
+            form.reset();
+            ['name', 'phone_number', 'address'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('is-invalid', 'is-valid');
+            });
+            // Sembunyikan alert
+            formAlert.classList.add('d-none');
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const customersTableContainer = document.getElementById('customersTableContainer');
+
+        function fetchCustomers() {
+            const search = document.getElementById('searchInput').value.trim();
+            const limit = document.getElementById('limitSelect').value;
+
+            fetch(`/customers/data?search=${encodeURIComponent(search)}&limit=${limit}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.text())
+                .then(html => {
+                    customersTableContainer.innerHTML = html;
+                })
+                .catch(error => console.error('Error fetching customers:', error));
+        }
+
+        document.addEventListener('input', function (e) {
+            if (e.target.id === 'searchInput' || e.target.id === 'limitSelect') {
+                fetchCustomers();
+            }
+        });
+    });
+
+</script>

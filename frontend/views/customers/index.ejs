@@ -29,8 +29,6 @@
         }
     </style>
 
-
-
     <body>
 
         <%- include('../layout/navbar') %>
@@ -61,85 +59,38 @@
                                         <h5 class="card-title">
                                             <%= title %>
                                         </h5>
+
                                         <div class="d-flex justify-content-between">
+                                            <!-- SEARCH DAN LIMIT -->
                                             <div class="d-flex align-items-center w-25">
                                                 <div class="search-bar p-1 border border-2 my-2">
-                                                    <input type="text" class="border-0" placeholder=" Search"
-                                                        aria-label="Search" aria-describedby="basic-addon1">
-                                                    <a href="" class="bx-color"><i class="bi bi-search"></i></a>
+                                                    <input id="searchInput" type="text" class="border-0"
+                                                        placeholder="Search" aria-label="Search"
+                                                        aria-describedby="basic-addon1" value="<%= search %>">
+                                                    <a href="javascript:void(0);" class="bx-color"><i
+                                                            class="bi bi-search"></i></a>
                                                 </div>
                                                 <div class="dropdown m-2">
-                                                    <select class="form-select" aria-label="Select Limit">
-                                                        <option selected>10</option>
-                                                        <option value="15">15</option>
-                                                        <option value="20">20</option>
-                                                        <option value="30">30</option>
+                                                    <select id="limitSelect" class="form-select"
+                                                        aria-label="Select Limit">
+                                                        <option value="5" <%=limit==5 ? 'selected' : '' %>>5</option>
+                                                        <option value="10" <%=limit==10 ? 'selected' : '' %>>10</option>
+                                                        <option value="15" <%=limit==15 ? 'selected' : '' %>>15</option>
+                                                        <option value="20" <%=limit==20 ? 'selected' : '' %>>20</option>
+                                                        <option value="30" <%=limit==30 ? 'selected' : '' %>>30</option>
                                                     </select>
                                                 </div>
                                             </div>
 
-                                            <!-- Modal Tambah Transaksi -->
+                                            <!-- BUTTON TAMBAH -->
                                             <div class="d-flex align-items-center w-25 justify-content-end mx-2">
-                                                <button type="button" class="bi bi-plus-lg btn btn-primary "
+                                                <button type="button" class="bi bi-plus-lg btn btn-primary"
                                                     data-bs-toggle="modal" data-bs-target="#tambahBaru"></button>
-
-                                                <!-- Modal Tambah Pelanggan -->
-                                                <div class="modal fade" id="tambahBaru" tabindex="-1">
-                                                    <div class="modal-dialog modal-xl modal-dialog-centered">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">Tambah Pelanggan</h5>
-                                                                <button type="button" class="btn-close"
-                                                                    data-bs-dismiss="modal"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div id="formAlert" class="alert alert-danger d-none"
-                                                                    role="alert">
-                                                                    Semua field wajib diisi dengan benar!
-                                                                </div>
-                                                                <form id="customerForm" action="/customers/add"
-                                                                    method="post" class="row g-3">
-                                                                    <div class="col-md-12">
-                                                                        <label for="name" class="form-label">Nama
-                                                                            Pelanggan</label>
-                                                                        <input type="text" id="name" name="name"
-                                                                            class="form-control"
-                                                                            placeholder="Masukkan Nama ...">
-                                                                    </div>
-                                                                    <div class="col-md-12">
-                                                                        <label for="phone_number" class="form-label">No
-                                                                            Handphone</label>
-                                                                        <input type="tel" id="phone_number"
-                                                                            name="phone_number" class="form-control"
-                                                                            placeholder="Masukkan Nomor ..."
-                                                                            pattern="^\d{10,13}$">
-                                                                    </div>
-                                                                    <div class="col-md-12">
-                                                                        <label for="address"
-                                                                            class="form-label">Alamat</label>
-                                                                        <textarea id="address" name="address"
-                                                                            class="form-control"
-                                                                            placeholder="Masukkan Alamat ..."></textarea>
-                                                                    </div>
-                                                                    <div class="modal-footer">
-                                                                        <button type="button" class="btn btn-secondary"
-                                                                            data-bs-dismiss="modal">Close</button>
-                                                                        <button type="submit" class="btn btn-success">
-                                                                            Save changes
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-
                                             </div>
-                                            <!-- End Tambah Transaksi Modal-->
                                         </div>
 
-                                        <% if (message) { %>
+                                        <!-- ALERT MESSAGE -->
+                                        <% if (typeof message !=='undefined' && message) { %>
                                             <div class="alert alert-<%= message.type %> alert-dismissible fade show"
                                                 role="alert">
                                                 <%= message.text %>
@@ -148,62 +99,65 @@
                                             </div>
                                             <% } %>
 
-                                                <% if (customers && customers.length> 0) { %>
-                                                    <table class="table table-hover table-responsive mt-3">
-                                                        <thead>
-                                                            <tr>
-                                                                <!-- Header Tabel -->
-                                                                <th scope="col">ID Pelanggan</th>
-                                                                <th scope="col">Nama Pelanggan</th>
-                                                                <th scope="col">Alamat</th>
-                                                                <th scope="col">Nomor Telepon</th>
-                                                                <th scope="col">Tanggal Bergabung</th>
-                                                                <th scope="col">Aksi</th>
-                                                                <th scope="col">Delete</th>
+                                                <!-- TABEL DATA -->
+                                                <div id="customersTableContainer">
+                                                    <%- include('./_table', { customers: customers }) %>
+                                                </div>
 
-                                                        </thead>
-                                                        <tbody>
-                                                            <% customers.forEach(customers=> { %>
-                                                                <tr>
-                                                                    <td>
-                                                                        <%= customers.customer_id %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <%= customers.name %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <%= customers.phone_number %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <%= customers.address %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <%= customers.created_at %>
-                                                                    </td>
-                                                                    <td>
-                                                                        <a href="customers/details/<%= customers.customer_id %>"
-                                                                            class="btn btn-sm btn-primary">Detail</a>
-                                                                    </td>
-                                                                    <td>
-                                                                        <button class="btn btn-sm btn-danger"
-                                                                            onclick="deleteCustomer('<%= customers.customer_id %>')">
-                                                                            Delete
-                                                                        </button>
-                                                                    </td>
+                                    </div> <!-- End of card-body -->
 
-                                                                </tr>
-                                                                <% }) %>
-                                                        </tbody>
-                                                    </table>
-                                                    <% } else { %>
-                                                        <p class="text-center mt-4">Tidak ada transaksi penjualan
-                                                            ditemukan.</p>
-                                                        <% } %>
-
-
+                                    <!-- Modal tambah pelanggan tetap diluar container -->
+                                    <div class="modal fade" id="tambahBaru" tabindex="-1">
+                                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Tambah Pelanggan</h5>
+                                                    <button type="button" class="btn-close"
+                                                        data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div id="formAlert" class="alert alert-danger d-none" role="alert">
+                                                        Semua field wajib diisi dengan benar!
+                                                    </div>
+                                                    <form id="customerForm" action="/customers/add" method="post"
+                                                        class="row g-3">
+                                                        <form id="customerForm" action="/customers/add" method="post"
+                                                            class="row g-3">
+                                                            <div class="col-md-12">
+                                                                <label for="name" class="form-label">Nama
+                                                                    Pelanggan</label>
+                                                                <input type="text" id="name" name="name"
+                                                                    class="form-control"
+                                                                    placeholder="Masukkan Nama ...">
+                                                            </div>
+                                                            <div class="col-md-12">
+                                                                <label for="phone_number" class="form-label">No
+                                                                    Handphone</label>
+                                                                <input type="tel" id="phone_number" name="phone_number"
+                                                                    class="form-control"
+                                                                    placeholder="Masukkan Nomor ..."
+                                                                    pattern="^\d{10,13}$">
+                                                            </div>
+                                                            <div class="col-md-12">
+                                                                <label for="address" class="form-label">Alamat</label>
+                                                                <textarea id="address" name="address"
+                                                                    class="form-control"
+                                                                    placeholder="Masukkan Alamat ..."></textarea>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary"
+                                                                    data-bs-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-success">Save
+                                                                    changes</button>
+                                                            </div>
+                                                        </form>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-
                                 </div>
+
                             </div>
                         </div>
                     </section>
@@ -214,75 +168,6 @@
                 <%- include('../layout/footer') %>
 
     </body>
-    <script>
-        function deleteCustomer(id) {
-            if (confirm('Yakin ingin menghapus pelanggan ini?')) {
-                window.location.href = '/customers/delete/' + id;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.getElementById('customerForm');
-            const formAlert = document.getElementById('formAlert');
-            const modalEl = document.getElementById('tambahBaru');
-
-            // Fungsi validasi kustom
-            form.addEventListener('submit', function (e) {
-                let isValid = true;
-                // Ambil semua input
-                const inputs = ['name', 'phone_number', 'address'].map(id => document.getElementById(id));
-                // Reset styling validasi sebelumnya
-                inputs.forEach(i => {
-                    i.classList.remove('is-invalid', 'is-valid');
-                });
-                formAlert.classList.add('d-none');
-
-                // Validasi masing-masing field
-                const [nameInput, phoneInput, addressInput] = inputs;
-                if (!nameInput.value.trim()) {
-                    nameInput.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    nameInput.classList.add('is-valid');
-                }
-                const phoneVal = phoneInput.value.trim();
-                if (!/^\d{10,13}$/.test(phoneVal)) {
-                    phoneInput.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    phoneInput.classList.add('is-valid');
-                }
-                if (!addressInput.value.trim()) {
-                    addressInput.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    addressInput.classList.add('is-valid');
-                }
-
-                if (!isValid) {
-                    e.preventDefault();
-                    formAlert.innerText = 'Semua field wajib diisi dengan benar!';
-                    formAlert.classList.remove('d-none');
-                }
-            });
-
-            // Reset penuh saat modal ditutup
-            modalEl.addEventListener('hidden.bs.modal', function () {
-                // Hapus kelas validasi dari form
-                form.classList.remove('was-validated');                     
-                // Reset semua input dan styling
-                form.reset();                                                   
-                ['name', 'phone_number', 'address'].forEach(id => {
-                    const el = document.getElementById(id);
-                    el.classList.remove('is-invalid', 'is-valid');
-                });
-                // Sembunyikan alert
-                formAlert.classList.add('d-none');
-            });
-        });
-
-
-    </script>
-
+    <%- include('./scriptCustomer') %>
 
 </html>

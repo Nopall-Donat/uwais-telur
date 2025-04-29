@@ -1,5 +1,4 @@
 const salesModel = require('../models/salesModel');
-const { v4: uuidv4 } = require('uuid');
 
 module.exports = {
     viewIndexSales: async (req, res) => {
@@ -81,7 +80,7 @@ module.exports = {
 
     createSales: async (req, res) => {
         try {
-            const transactionId = uuidv4();
+            const transactionId = "P003";
             const { admin_id, customer_id } = req.body;
             await salesModel.createSalesTransaction(transactionId, admin_id, customer_id);
             res.status(201).json({ message: 'Transaksi berhasil dibuat.', transactionId });
@@ -93,7 +92,7 @@ module.exports = {
 
     addOrderToSales: async (req, res) => {
         try {
-            const orderId = uuidv4();
+            const orderId = "hello";
             const { sales_transaction_id, item_code, quantity, unit_price } = req.body;
             await salesModel.insertSalesOrder(orderId, sales_transaction_id, item_code, quantity, unit_price);
             res.status(201).json({ message: 'Item berhasil ditambahkan ke transaksi.', orderId });
@@ -105,7 +104,7 @@ module.exports = {
 
     addPaymentToSales: async (req, res) => {
         try {
-            const paymentId = uuidv4();
+            const paymentId = "hello";
             const { sales_transaction_id, payment_amount, payment_method } = req.body;
             await salesModel.insertSalesPayment(paymentId, sales_transaction_id, payment_amount, payment_method);
             res.status(201).json({ message: 'Pembayaran berhasil ditambahkan.', paymentId });

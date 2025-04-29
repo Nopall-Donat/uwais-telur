@@ -8,22 +8,22 @@ router.get('/', customersController.viewIndexCustomer);
 // customer list pelanggan lengkap
 router.get('/get', customersController.getAllCustomer);
 
-// customer by ID
-router.get('/details/:id', customersController.getByIdCustomer);
-
-// customer limit
-router.get('/limit', customersController.getAllLimitCustomer);
-
-// customer untuk dropdown
-router.get('/get-names', customersController.getCustomerNameList);
+// Endpoint Data AJAX Search + Limit
+router.get('/data', customersController.listCustomers);
 
 // Tambah pelanggan
 router.post('/add', customersController.createCustomer);
 
+// customer by ID
+router.get('/details/:id', customersController.getByIdCustomer);
+
 // Update pelanggan
-router.put('/update/:id', customersController.updateByIdCustomer);
+router.post('/update/:id', customersController.updateByIdCustomer);
 
 // Hapus pelanggan
 router.get('/delete/:id', customersController.deleteCustomer);
+
+// customer untuk dropdown
+router.get('/get-names', customersController.getCustomerNameList);
 
 module.exports = router;

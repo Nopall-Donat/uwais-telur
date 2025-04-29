@@ -1,40 +1,49 @@
-const customer = require('../models/customersModel');
+const customerModel = require('../models/customersModel');
 const { getCurrentTimestampWIB } = require('../../utils/time');
 
-module.exports = {
+const customersController = {
     viewIndexCustomer: async (req, res, next) => {
         try {
-            const customers = await customer.getAllCustomer();
-    
-            // Ambil message lalu hapus setelah dibaca
+            const customers = await customerModel.getAllCustomer();
             const message = req.session.message;
             delete req.session.message;
-    
+
             res.render('customers/index', {
                 title: 'Data Pelanggan',
                 customers,
-                message // kirim ke view
+                message,
+                search: '',
+                limit: 10
             });
         } catch (err) {
+            console.error('viewIndexCustomer error:', err);
             next(err);
         }
-    },      
+    },
 
     getAllCustomer: async (req, res, next) => {
         try {
-            const customers = await customer.getAllCustomer();
+            const customers = await customerModel.getAllCustomer();
             res.json(customers);
         } catch (err) {
+            console.error('getAllCustomer error:', err);
             next(err);
         }
     },
 
     getByIdCustomer: async (req, res, next) => {
         try {
-            const customer = await customer.getByIdCustomer(req.params.id);
-            if (!customer) return res.status(404).json({ error: 'Customer not found' });
-            res.json(customer);
+            const customerData = await customerModel.getByIdCustomer(req.params.id);
+            if (!customerData) {
+                return res.status(404).json({ error: 'Customer not found' });
+            }
+
+            res.render('customers/details', {
+                title: 'Detail Pelanggan',
+                customer: customerData
+            });
         } catch (err) {
+            console.error('getByIdCustomer error:', err);
             next(err);
         }
     },
@@ -42,9 +51,10 @@ module.exports = {
     getAllLimitCustomer: async (req, res, next) => {
         try {
             const limit = parseInt(req.query.limit) || 10;
-            const customers = await customer.getAllLimitCustomer(limit);
+            const customers = await customerModel.getAllLimitCustomer(limit);
             res.json(customers);
         } catch (err) {
+            console.error('getAllLimitCustomer error:', err);
             next(err);
         }
     },
@@ -52,47 +62,44 @@ module.exports = {
     updateByIdCustomer: async (req, res, next) => {
         try {
             const { name, phone_number, address } = req.body;
-            await customer.updateByIdCustomer(req.params.id, name, phone_number, address);
-            res.json({ success: true });
+            const { id } = req.params;
+            const updatedAt = getCurrentTimestampWIB();
+
+            await customerModel.updateByIdCustomer(id, name, phone_number, address, updatedAt);
+
+            req.session.message = { type: 'success', text: 'Berhasil memperbarui data pelanggan!' };
+            res.redirect('/customers');
         } catch (err) {
-            next(err);
+            console.error('updateByIdCustomer error:', err);
+            req.session.message = { type: 'danger', text: 'Gagal memperbarui data pelanggan!' };
+            res.redirect('/customers');
         }
     },
 
     createCustomer: async (req, res, next) => {
         try {
             const { name, phone_number, address } = req.body;
-    
-            // 1. Generate tanggal hari ini (pakai Date biasa untuk bikin kode ID)
+
             const now = new Date();
             const dd = String(now.getDate()).padStart(2, '0');
-            const mm = String(now.getMonth() + 1).padStart(2, '0'); // ingat, bulan 0-11
+            const mm = String(now.getMonth() + 1).padStart(2, '0'); // Bulan 0-11
             const yy = String(now.getFullYear()).slice(-2);
-    
-            // 2. Ambil timestamp Waktu Indonesia Barat (untuk created_at & updated_at)
+            const datePart = `${dd}${mm}${yy}`;
+
             const createdAt = getCurrentTimestampWIB();
             const updatedAt = getCurrentTimestampWIB();
-    
-            const datePart = `${dd}${mm}${yy}`;
-    
-            // 3. Cari berapa banyak customer yang sudah dibuat hari ini
-            const customersToday = await customer.getCustomersByDate(datePart);
-    
-            // 4. Hitung urutan berikutnya
-            const orderNumber = String(customersToday.length + 1).padStart(2, '0'); // 01, 02, 03...
-    
-            // 5. Bentuk final ID
+
+            const customersToday = await customerModel.getCustomersByDate(datePart);
+            const orderNumber = String(customersToday.length + 1).padStart(2, '0');
             const customerId = `P${datePart}${orderNumber}`;
-    
-            // 6. Pastikan ID ini benar-benar belum ada
-            const isExist = await customer.findCustomerById(customerId);
+
+            const isExist = await customerModel.getByIdCustomer(customerId);
             if (isExist) {
                 throw new Error('Customer ID already exists, please try again.');
             }
-    
-            // 7. Simpan ke database
-            await customer.createCustomer(customerId, name, phone_number, address, createdAt, updatedAt);
-    
+
+            await customerModel.createCustomer(customerId, name, phone_number, address, createdAt, updatedAt);
+
             req.session.message = { type: 'success', text: 'Berhasil menambahkan pelanggan!' };
             res.redirect('/customers');
         } catch (err) {
@@ -101,26 +108,67 @@ module.exports = {
             res.redirect('/customers');
         }
     },
-    
+
     deleteCustomer: async (req, res, next) => {
         try {
             const { id } = req.params;
-            await customer.deleteCustomer(id);
-    
+            await customerModel.deleteCustomer(id);
+
             req.session.message = { type: 'success', text: 'Berhasil menghapus pelanggan!' };
             res.redirect('/customers');
         } catch (err) {
+            console.error('deleteCustomer error:', err);
             req.session.message = { type: 'danger', text: 'Gagal menghapus pelanggan!' };
             res.redirect('/customers');
         }
     },
-    
+
+    listCustomers: async (req, res, next) => {
+        try {
+            const search = req.query.search || '';
+            const limit = parseInt(req.query.limit) || 10;
+            const customers = await customerModel.searchCustomers(search, limit);
+
+            if (req.xhr) {
+                res.render('customers/_table', {
+                    customers,
+                    search,
+                    limit,
+                    title: 'Data Pelanggan'
+                }, (err, html) => {
+                    if (err) {
+                        console.error('listCustomers render error:', err);
+                        return res.status(500).send('Error render partial table.');
+                    }
+                    res.send(html);
+                });
+            } else {
+                const message = req.session.message;
+                delete req.session.message;
+
+                res.render('customers/index', {
+                    title: 'Data Pelanggan',
+                    customers,
+                    search,
+                    limit,
+                    message
+                });
+            }
+        } catch (err) {
+            console.error('listCustomers error:', err);
+            res.redirect('/');
+        }
+    },
+
     getCustomerNameList: async (req, res, next) => {
         try {
-            const customers = await customer.getCustomerNameList();
+            const customers = await customerModel.getCustomerNameList();
             res.json(customers);
         } catch (err) {
+            console.error('getCustomerNameList error:', err);
             next(err);
         }
     }
 };
+
+module.exports = customersController;
