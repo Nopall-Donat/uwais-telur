@@ -101,7 +101,15 @@
 
                                                 <!-- TABEL DATA -->
                                                 <div id="customersTableContainer">
-                                                    <%- include('./_table', { customers: customers }) %>
+                                                    <%- include('./_table', {
+                                                        customers: customers,
+                                                        search: search,
+                                                        limit: limit,
+                                                        page: page,
+                                                        totalPages: totalPages,
+                                                        message: message,
+                                                        title: title
+                                                    }) %>
                                                 </div>
 
                                     </div> <!-- End of card-body -->

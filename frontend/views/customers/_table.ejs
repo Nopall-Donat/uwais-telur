@@ -1,4 +1,4 @@
-<% if (customers && customers.length > 0) { %>
+<% if (customers && customers.length> 0) { %>
     <table class="table table-hover table-responsive mt-3" id="customersTable">
         <thead>
             <tr>
@@ -12,23 +12,67 @@
             </tr>
         </thead>
         <tbody>
-            <% customers.forEach(customer => { %>
+            <% customers.forEach(customer=> { %>
                 <tr>
-                    <td><%= customer.customer_id %></td>
-                    <td><%= customer.name %></td>
-                    <td><%= customer.address %></td>
-                    <td><%= customer.phone_number %></td>
-                    <td><%= customer.created_at %></td>
                     <td>
-                        <a href="/customers/details/<%= customer.customer_id %>" class="btn btn-sm btn-primary">Detail</a>
+                        <%= customer.customer_id %>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-danger" onclick="deleteCustomer('<%= customer.customer_id %>')">Delete</button>
+                        <%= customer.name %>
+                    </td>
+                    <td>
+                        <%= customer.address %>
+                    </td>
+                    <td>
+                        <%= customer.phone_number %>
+                    </td>
+                    <td>
+                        <%= customer.created_at %>
+                    </td>
+                    <td>
+                        <a href="/customers/details/<%= customer.customer_id %>"
+                            class="btn btn-sm btn-primary">Detail</a>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-danger"
+                            onclick="deleteCustomer('<%= customer.customer_id %>')">Delete</button>
                     </td>
                 </tr>
-            <% }) %>
+                <% }) %>
         </tbody>
     </table>
-<% } else { %>
-    <p class="text-center mt-4">Tidak ada pelanggan ditemukan.</p>
-<% } %>
+    <div class="d-flex justify-content-center mt-4">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+
+                <!-- Tombol Previous -->
+                <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="javascript:void(0);" data-page="<%= page - 1 %>" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+
+                <!-- Angka 1, 2, 3 -->
+                <% for (let i=1; i <=3; i++) { %>
+                    <li class="page-item <%= page === i ? 'active' : '' %> <%= i > totalPages ? 'disabled' : '' %>">
+                        <a class="page-link" href="javascript:void(0);" data-page="<%= i %>">
+                            <%= i %>
+                        </a>
+                    </li>
+                <% } %>
+
+                <!-- Tombol Next -->
+                <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                    <a class="page-link" href="javascript:void(0);" data-page="<%= page + 1 %>"
+                        aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+    </div>
+
+    <% } else { %>
+        <p class="text-center mt-4">Tidak ada pelanggan ditemukan.</p>
+    <% } %>

@@ -102,28 +102,47 @@ module.exports = {
         }
     },
 
-    searchCustomers: async (searchTerm, limit) => {
+    getCustomersPaginated: async (searchTerm, limit, offset) => {
         try {
             const db = await dbPromise;
-            const query = `
-            SELECT * FROM customers
-            WHERE 
-                name LIKE ? OR
-                phone_number LIKE ? OR
-                address LIKE ? OR
-                customer_id LIKE ? OR
-                created_at LIKE ?
-            ORDER BY created_at DESC
-            LIMIT ?
-        `;
             const wildcardSearch = `%${searchTerm}%`;
-            return await db.all(query, [wildcardSearch, wildcardSearch, wildcardSearch, wildcardSearch, wildcardSearch, limit]);
+            const query = `
+                SELECT * FROM customers
+                WHERE 
+                    name LIKE ? OR
+                    phone_number LIKE ? OR
+                    address LIKE ? OR
+                    customer_id LIKE ? OR
+                    created_at LIKE ?
+                ORDER BY created_at DESC
+                LIMIT ? OFFSET ?
+            `;
+            return await db.all(query, [wildcardSearch, wildcardSearch, wildcardSearch, wildcardSearch, wildcardSearch, limit, offset]);
         } catch (err) {
-            console.error('customerModel.searchCustomers error:', err);
+            console.error('customerModel.getCustomersPaginated error:', err);
             throw err;
         }
-    }
+    },
 
-
+    countCustomers: async (searchTerm) => {
+        try {
+            const db = await dbPromise;
+            const wildcardSearch = `%${searchTerm}%`;
+            const query = `
+                SELECT COUNT(*) as total FROM customers
+                WHERE 
+                    name LIKE ? OR
+                    phone_number LIKE ? OR
+                    address LIKE ? OR
+                    customer_id LIKE ? OR
+                    created_at LIKE ?
+            `;
+            const result = await db.get(query, [wildcardSearch, wildcardSearch, wildcardSearch, wildcardSearch, wildcardSearch]);
+            return result.total;
+        } catch (err) {
+            console.error('customerModel.countCustomers error:', err);
+            throw err;
+        }
+    } 
 
 };

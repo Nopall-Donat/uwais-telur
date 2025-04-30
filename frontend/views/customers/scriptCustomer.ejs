@@ -91,4 +91,46 @@
         });
     });
 
+    document.addEventListener('DOMContentLoaded', function () {
+        const customersTableContainer = document.getElementById('customersTableContainer');
+        let isLoading = false; // Locking flag
+
+        function fetchCustomers(search, limit, page) {
+            if (isLoading) return; // Jika sedang loading, abaikan klik
+
+            isLoading = true; // Mulai loading, kunci klik
+            fetch(`/customers/data?search=${encodeURIComponent(search)}&limit=${limit}&page=${page}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(response => response.text())
+                .then(html => {
+                    customersTableContainer.innerHTML = html;
+                })
+                .catch(error => console.error('Error fetching customers:', error))
+                .finally(() => {
+                    isLoading = false; // Setelah fetch selesai, buka kunci lagi
+                });
+        }
+
+        function updateCustomerList(page = 1) {
+            const search = document.getElementById('searchInput').value.trim();
+            const limit = document.getElementById('limitSelect').value;
+            fetchCustomers(search, limit, page);
+        }
+
+        document.addEventListener('input', (e) => {
+            if (e.target.id === 'searchInput' || e.target.id === 'limitSelect') {
+                updateCustomerList();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('page-link') && e.target.dataset.page) {
+                const page = parseInt(e.target.dataset.page);
+                if (!isNaN(page)) {
+                    updateCustomerList(page);
+                }
+            }
+        });
+    });
 </script>

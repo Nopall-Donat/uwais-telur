@@ -5,21 +5,22 @@ const customersController = {
     viewIndexCustomer: async (req, res, next) => {
         try {
             const customers = await customerModel.getAllCustomer();
-            const message = req.session.message;
+            const message = req.session.message || null;
             delete req.session.message;
-
+    
             res.render('customers/index', {
                 title: 'Data Pelanggan',
                 customers,
                 message,
                 search: '',
-                limit: 10
+                limit: 10,
+                page: 1, // Tambahkan ini
+                totalPages: 1 // Tambahkan ini
             });
         } catch (err) {
-            console.error('viewIndexCustomer error:', err);
             next(err);
         }
-    },
+    },    
 
     getAllCustomer: async (req, res, next) => {
         try {
@@ -127,35 +128,38 @@ const customersController = {
         try {
             const search = req.query.search || '';
             const limit = parseInt(req.query.limit) || 10;
-            const customers = await customerModel.searchCustomers(search, limit);
+            const page = parseInt(req.query.page) || 1;
+            const offset = (page - 1) * limit;
+
+            const [customers, totalCustomers] = await Promise.all([
+                customerModel.getCustomersPaginated(search, limit, offset),
+                customerModel.countCustomers(search)
+            ]);
+
+            const totalPages = Math.ceil(totalCustomers / limit);
 
             if (req.xhr) {
-                res.render('customers/_table', {
-                    customers,
-                    search,
-                    limit,
-                    title: 'Data Pelanggan'
-                }, (err, html) => {
+                res.render('customers/_table', { customers, search, limit, page, totalPages, title: 'Data Pelanggan' }, (err, html) => {
                     if (err) {
-                        console.error('listCustomers render error:', err);
+                        console.error(err);
                         return res.status(500).send('Error render partial table.');
                     }
                     res.send(html);
                 });
             } else {
-                const message = req.session.message;
-                delete req.session.message;
-
                 res.render('customers/index', {
                     title: 'Data Pelanggan',
                     customers,
                     search,
                     limit,
-                    message
+                    page,
+                    totalPages,
+                    message: req.session.message || null,
                 });
+                delete req.session.message;
             }
         } catch (err) {
-            console.error('listCustomers error:', err);
+            console.error('customerController.listCustomers error:', err);
             res.redirect('/');
         }
     },
