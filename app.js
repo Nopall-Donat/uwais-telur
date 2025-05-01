@@ -23,9 +23,17 @@ const PORT = config.port;
 
 // Static files middleware dengan custom 404
 app.use(loggerMiddleware);
-app.use(helmet({
-    contentSecurityPolicy: false
-}));
+app.use(
+    helmet.contentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            fontSrc: ["'self'"],
+            imgSrc: ["'self'", "data:"]
+        },
+    })
+);
 app.use(morgan('dev'));
 app.use(flash()); // Middleware untuk flash messages
 app.use(express.json());

@@ -23,7 +23,4 @@ router.post('/update/:id', customersController.updateByIdCustomer);
 // Hapus pelanggan
 router.get('/delete/:id', customersController.deleteCustomer);
 
-// customer untuk dropdown
-router.get('/get-names', customersController.getCustomerNameList);
-
 module.exports = router;

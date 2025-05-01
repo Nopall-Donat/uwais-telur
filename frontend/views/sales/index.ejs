@@ -4,15 +4,10 @@
 <%- include('../layout/header') %>
 
     <body>
-
         <%- include('../layout/navbar') %>
-
-            <!-- ======= Sidebar ======= -->
             <%- include('../layout/sidebar') %>
 
-
                 <main id="main" class="main">
-
                     <div class="pagetitle">
                         <h1>
                             <%= title %>
@@ -20,118 +15,124 @@
                         <nav>
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="/">Home</a></li>
-                                <li class="breadcrumb-item">Tables</li>
-                                <li class="breadcrumb-item active">Data</li>
+                                <li class="breadcrumb-item active">Transaksi</li>
                             </ol>
                         </nav>
-                    </div><!-- End Page Title -->
+                    </div>
 
                     <section class="section">
                         <div class="row">
-
                             <div class="col-12">
                                 <div class="card recent-sales overflow-auto">
                                     <div class="card-body">
-                                        <h5 class="card-title">Data Penjualan</h5>
+                                        <h5 class="card-title">
+                                            <%= title %>
+                                        </h5>
+
+                                        <!-- Search & Limit -->
                                         <div class="d-flex justify-content-between">
                                             <div class="d-flex align-items-center w-25">
-                                                <div class="search-bar p-1 border border-2 my-2">
-                                                    <input type="text" class="border-0" placeholder=" Search"
-                                                        aria-label="Search" aria-describedby="basic-addon1">
-                                                    <a href="" class="bx-color"><i class="bi bi-search"></i></a>
-                                                </div>
-                                                <div class="dropdown m-2">
-                                                    <select class="form-select" aria-label="Select Limit">
-                                                        <option selected>10</option>
-                                                        <option value="15">15</option>
-                                                        <option value="20">20</option>
-                                                        <option value="30">30</option>
-                                                    </select>
+                                                <input type="text" id="searchInput" class="form-control me-2"
+                                                    placeholder="Cari transaksi..." value="<%= search %>">
+                                                <select id="limitSelect" class="form-select w-auto">
+                                                    <option value="5" <%=limit==5 ? 'selected' : '' %>>5</option>
+                                                    <option value="10" <%=limit==10 ? 'selected' : '' %>>10</option>
+                                                    <option value="20" <%=limit==20 ? 'selected' : '' %>>20</option>
+                                                    <option value="50" <%=limit==50 ? 'selected' : '' %>>50</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <button class="btn btn-primary" data-bs-toggle="modal"
+                                                    data-bs-target="#modalPilihPelanggan">
+                                                    <i class="bi bi-plus-lg"></i> Tambah Transaksi
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- 🔷 Modal Pilih Pelanggan -->
+                                        <!-- Modal -->
+                                        <div class="modal fade" id="modalPilihPelanggan" tabindex="-1"
+                                            data-bs-backdrop="static" data-bs-keyboard="false">
+                                            <div class="modal-dialog modal-md modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Pilih Pelanggan</h5>
+                                                        <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form action="/sales/add" method="post">
+                                                        <div class="modal-body">
+                                                            <div
+                                                                class="mb-3 d-flex justify-content-between align-items-center">
+                                                                <label for="customer_id" class="form-label">Nama
+                                                                    Pelanggan</label>
+                                                                <button type="button"
+                                                                    class="btn btn-sm btn-outline-primary"
+                                                                    onclick="bukaModalTambahPelanggan()"
+                                                                    data-bs-toggle="tooltip"
+                                                                    title="Tambah pelanggan jika belum terdaftar">
+                                                                    <i class="bi bi-plus-lg"></i>
+                                                                </button>
+
+                                                            </div>
+                                                            <select name="customer_id" id="customer_id"
+                                                                class="form-select select2" style="width: 100%;"
+                                                                required>
+                                                                <option value="">-- Pilih Pelanggan --</option>
+                                                                <% customers.forEach(cust=> { %>
+                                                                    <option value="<%= cust.customer_id %>">
+                                                                        <%= cust.name %> - <%= cust.address %>
+                                                                    </option>
+                                                                    <% }) %>
+                                                            </select>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="submit"
+                                                                class="btn btn-success">Lanjut</button>
+                                                            <button type="button" class="btn btn-secondary"
+                                                                data-bs-dismiss="modal">Batal</button>
+                                                        </div>
+                                                    </form>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <!-- Modal Tambah Transaksi -->
-                                            <div class="d-flex align-items-center w-25 justify-content-end mx-2">
-                                                <button type="button" class="bi bi-plus-lg btn btn-primary "
-                                                    data-bs-toggle="modal" data-bs-target="#transaksi"></button>
-                                                <!-- Modall Centered XL -->
-                                                <div class="modal fade" id="transaksi" tabindex="-1"
-                                                    aria-labelledby="modalTransaksi" aria-hidden="true">
-                                                    <div class="modal-dialog modal-dialog-centered modal-xl">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">Daftar Pelanggan</h5>
-                                                                <button type="button" class="btn-close"
-                                                                    data-bs-dismiss="modal" aria-label="Close">
-                                                                </button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <form action="" class="d-flex justify-content-around">
-                                                                    <label for="pelanggan" class="form-label">Nama
-                                                                        Pelanggan : </label>
-                                                                    <select id="dropdown-search"
-                                                                        class="border-2 form-select">
-                                                                        <option value="Blue Bloods"
-                                                                            data-date="2010-2021">Blue Bloods
-                                                                            (2010-2021)</option>
-                                                                        <option value="Magnum P.I."
-                                                                            data-date="1980-1988" selected>Magnum P.I.
-                                                                            (1980-1988)</option>
-                                                                    </select>
-                                                                </form>
-                                                                <div class="d-flex justify-content-end ">
-                                                                    <button type="button" class="btn btn-primary mt-2"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#tambahBaru">Tambah
-                                                                        Baru</button>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
-                                                                    data-bs-dismiss="modal">Close</button>
-                                                                <button type="button" class="btn btn-success">Save
-                                                                    changes</button>
-                                                            </div>
-                                                        </div>
+                                        <!-- 🔷 Modal Tambah Pelanggan -->
+                                        <div class="modal fade" id="modalTambahPelanggan" tabindex="-1">
+                                            <div class="modal-dialog modal-xl modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Tambah Pelanggan</h5>
+                                                        <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal"></button>
                                                     </div>
-                                                </div>
-
-                                                <div class="modal fade" id="tambahBaru" tabindex="-1"
-                                                    aria-labelledby="modalTambahBaru" aria-hidden="true">
-                                                    <div class="modal-dialog modal-dialog-centered modal-xl">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">Tambah Pelanggan</h5>
-                                                                <button type="button" class="btn-close"
-                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    <div class="modal-body">
+                                                        <div id="formAlert" class="alert alert-danger d-none"
+                                                            role="alert">
+                                                            Semua field wajib diisi dengan benar!
+                                                        </div>
+                                                        <form id="customerForm" action="/customers/add" method="post"
+                                                            class="row g-3">
+                                                            <div class="col-md-12">
+                                                                <label for="name" class="form-label">Nama
+                                                                    Pelanggan</label>
+                                                                <input type="text" id="name" name="name"
+                                                                    class="form-control"
+                                                                    placeholder="Masukkan Nama ...">
                                                             </div>
-                                                            <div class="modal-body">
-                                                                <form action="" class="row g-3">
-                                                                    <div class="col-md-12">
-                                                                        <label for="pelanggan" class="form-label">Nama
-                                                                            Pelanggan</label>
-                                                                        <input type="text" name="namaPelanggan"
-                                                                            id="namaPelanggan"
-                                                                            placeholder="Masukkan Nama Pelanggan ..."
-                                                                            class="form-control border-2 ">
-                                                                    </div>
-                                                                    <div class="col-md-12">
-                                                                        <label for="pelanggan"
-                                                                            class="form-label">Alamat</label>
-                                                                        <textarea type="textarea" name="alamat"
-                                                                            id="alamat"
-                                                                            placeholder="Masukkan Alamat ..."
-                                                                            class="form-control border-2 "></textarea>
-                                                                    </div>
-                                                                    <div class="col-md-12">
-                                                                        <label for="telepon" class="form-label">No
-                                                                            Handphone</label>
-                                                                        <input type="number" name="telepon" id="telepon"
-                                                                            placeholder="Masukkan Nomor ..."
-                                                                            class="form-control border-2" minlength="10"
-                                                                            maxlength="13" pattern="[1-9][0-9]{9,12}">
-                                                                    </div>
-                                                                </form>
+                                                            <div class="col-md-12">
+                                                                <label for="phone_number" class="form-label">No
+                                                                    Handphone</label>
+                                                                <input type="tel" id="phone_number" name="phone_number"
+                                                                    class="form-control"
+                                                                    placeholder="Masukkan Nomor ..."
+                                                                    pattern="^\d{10,13}$">
+                                                            </div>
+                                                            <div class="col-md-12">
+                                                                <label for="address" class="form-label">Alamat</label>
+                                                                <textarea id="address" name="address"
+                                                                    class="form-control"
+                                                                    placeholder="Masukkan Alamat ..."></textarea>
                                                             </div>
                                                             <div class="modal-footer">
                                                                 <button type="button" class="btn btn-secondary"
@@ -139,87 +140,33 @@
                                                                 <button type="submit" class="btn btn-success">Save
                                                                     changes</button>
                                                             </div>
-                                                        </div>
+                                                        </form>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <!-- End Tambah Transaksi Modal-->
                                         </div>
-                                        <% if (sales && sales.length> 0) { %>
-                                            <table class="table table-hover table-responsive mt-3">
-                                                <thead>
-                                                    <tr>
-                                                        <!-- Header Tabel -->
-                                                        <th scope="col">ID Transaksi</th>
-                                                        <th scope="col">Nama Pelanggan</th>
-                                                        <th scope="col">Total Bayar</th>
-                                                        <th scope="col">Total Tagihan</th>
-                                                        <th scope="col">Waktu Transaksi</th>
-                                                        <th scope="col">Status</th>
-                                                        <th scope="col">Admin</th>
-                                                        <th scope="col">Aksi</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <% sales.forEach(sales=> { %>
-                                                        <tr>
-                                                            <td>
-                                                                <%= sales.id %>
-                                                            </td>
-                                                            <td>
-                                                                <%= sales.nama_pelanggan %> - <small>
-                                                                        <%= sales.alamat_pelanggan %>
-                                                                    </small>
-                                                            </td>
-                                                            <td>Rp <%= sales.total_bayar ?
-                                                                    sales.total_bayar.toLocaleString() : '0' %>
-                                                            </td>
-                                                            <td>Rp <%= sales.total_tagihan.toLocaleString() %>
-                                                            </td>
-                                                            <td>
-                                                                <%= new Date(sales.waktu_transaksi).toLocaleString() %>
-                                                            </td>
-                                                            <td>
-                                                                <% if (sales.status_pembayaran==='pending' ) { %>
-                                                                    <span
-                                                                        class="badge bg-warning text-dark">Pending</span>
-                                                                    <% } else if (sales.status_pembayaran==='completed'
-                                                                        ) { %>
-                                                                        <span class="badge bg-success">Selesai</span>
-                                                                        <% } else if
-                                                                            (sales.status_pembayaran==='canceled' ) { %>
-                                                                            <span
-                                                                                class="badge bg-danger">Dibatalkan</span>
-                                                                            <% } %>
-                                                            </td>
-                                                            <td>
-                                                                <%= sales.nama_admin %>
-                                                            </td>
-                                                            <td>
-                                                                <a href="/details/<%= sales.id %>"
-                                                                    class="btn btn-sm btn-primary">Detail</a>
-                                                            </td>
-                                                        </tr>
-                                                        <% }) %>
-                                                </tbody>
-                                            </table>
-                                            <% } else { %>
-                                                <p class="text-center mt-4">Tidak ada transaksi penjualan ditemukan.</p>
-                                                <% } %>
 
+                                        <!-- Alert -->
+                                        <% if (message) { %>
+                                            <div class="alert alert-<%= message.type %> mt-3" role="alert">
+                                                <%= message.text %>
+                                            </div>
+                                            <% } %>
 
+                                                <!-- Tabel -->
+                                                <div id="salesTableContainer">
+                                                    <%- include('./_table', { sales, search, limit, page, totalPages })
+                                                        %>
+                                                </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
                     </section>
+                </main>
 
-                </main><!-- End #main -->
-
-                <!-- ======= Footer ======= -->
                 <%- include('../layout/footer') %>
-
+                    <%- include('./scriptSales') %>
     </body>
 
 </html>

@@ -101,15 +101,9 @@
 
                                                 <!-- TABEL DATA -->
                                                 <div id="customersTableContainer">
-                                                    <%- include('./_table', {
-                                                        customers: customers,
-                                                        search: search,
-                                                        limit: limit,
-                                                        page: page,
-                                                        totalPages: totalPages,
-                                                        message: message,
-                                                        title: title
-                                                    }) %>
+                                                    <%- include('./_table', { customers: customers, search: search,
+                                                        limit: limit, page: page, totalPages: totalPages, message:
+                                                        message, title: title }) %>
                                                 </div>
 
                                     </div> <!-- End of card-body -->
@@ -129,36 +123,30 @@
                                                     </div>
                                                     <form id="customerForm" action="/customers/add" method="post"
                                                         class="row g-3">
-                                                        <form id="customerForm" action="/customers/add" method="post"
-                                                            class="row g-3">
-                                                            <div class="col-md-12">
-                                                                <label for="name" class="form-label">Nama
-                                                                    Pelanggan</label>
-                                                                <input type="text" id="name" name="name"
-                                                                    class="form-control"
-                                                                    placeholder="Masukkan Nama ...">
-                                                            </div>
-                                                            <div class="col-md-12">
-                                                                <label for="phone_number" class="form-label">No
-                                                                    Handphone</label>
-                                                                <input type="tel" id="phone_number" name="phone_number"
-                                                                    class="form-control"
-                                                                    placeholder="Masukkan Nomor ..."
-                                                                    pattern="^\d{10,13}$">
-                                                            </div>
-                                                            <div class="col-md-12">
-                                                                <label for="address" class="form-label">Alamat</label>
-                                                                <textarea id="address" name="address"
-                                                                    class="form-control"
-                                                                    placeholder="Masukkan Alamat ..."></textarea>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
-                                                                    data-bs-dismiss="modal">Close</button>
-                                                                <button type="submit" class="btn btn-success">Save
-                                                                    changes</button>
-                                                            </div>
-                                                        </form>
+                                                        <div class="col-md-12">
+                                                            <label for="name" class="form-label">Nama
+                                                                Pelanggan</label>
+                                                            <input type="text" id="name" name="name"
+                                                                class="form-control" placeholder="Masukkan Nama ...">
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <label for="phone_number" class="form-label">No
+                                                                Handphone</label>
+                                                            <input type="tel" id="phone_number" name="phone_number"
+                                                                class="form-control" placeholder="Masukkan Nomor ..."
+                                                                pattern="^\d{10,13}$">
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <label for="address" class="form-label">Alamat</label>
+                                                            <textarea id="address" name="address" class="form-control"
+                                                                placeholder="Masukkan Alamat ..."></textarea>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary"
+                                                                data-bs-dismiss="modal">Close</button>
+                                                            <button type="submit" class="btn btn-success">Save
+                                                                changes</button>
+                                                        </div>
                                                     </form>
                                                 </div>
                                             </div>

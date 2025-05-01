@@ -2,32 +2,29 @@ const express = require('express');
 const router = express.Router();
 const salesController = require('../controllers/salesController');
 
+// Halaman utama (render index)
 router.get('/', salesController.viewIndexSales);
-// Mendapatkan semua transaksi
+
+// Data AJAX + Pagination
+router.get('/data', salesController.listSales);
+
+// API full data
 router.get('/api', salesController.getAllSales);
 
-// Mendapatkan semua transaksi (limit)
-router.get('/limit/:limit', salesController.getAllSalesLimit);
+// Tambah transaksi
+router.post('/add', salesController.createSales);
 
-// Mendapatkan satu transaksi berdasarkan ID (header)
-router.get('sales/:id', salesController.getSalesById);
-
-// Mendapatkan detail transaksi (header + order + pembayaran)
+// Detail transaksi (render detail view)
 router.get('/details/:id', salesController.viewSalesDetail);
 
-// Membuat transaksi baru
-router.post('/create', salesController.createSales);
-
-// Menambahkan item ke transaksi
-router.post('/order', salesController.addOrderToSales);
-
-// Menambahkan pembayaran ke transaksi
-router.post('/payment', salesController.addPaymentToSales);
-
 // Update transaksi
-router.put('update/:id', salesController.updateSales);
+router.post('/update/:id', salesController.updateSales);
 
 // Hapus transaksi
-router.delete('delete/:id', salesController.deleteSales);
+router.get('/delete/:id', salesController.deleteSales);
+
+// API tambahan (opsional)
+router.post('/order', salesController.addOrderToSales);
+router.post('/payment', salesController.addPaymentToSales);
 
 module.exports = router;

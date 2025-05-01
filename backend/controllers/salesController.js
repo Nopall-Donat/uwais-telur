@@ -1,139 +1,172 @@
 const salesModel = require('../models/salesModel');
+const customerModel = require('../models/customersModel'); 
 
-module.exports = {
-    viewIndexSales: async (req, res) => {
+const salesController = {
+    // 🔷 View halaman utama
+    viewIndexSales: async (req, res, next) => {
         try {
-            const sales = await salesModel.getAllSalesTransactions();
+            const sales = await salesModel.getSalesBySearchAndLimit('', 10, 0);
+            const customers = await customerModel.getAllCustomer(); // ← tambahkan ini
+            const message = req.session.message || null;
+            delete req.session.message;
+
             res.render('sales/index', {
                 title: 'Data Penjualan',
-                sales
+                sales,
+                customers, // ← kirim ini ke EJS
+                message,
+                search: '',
+                limit: 10,
+                page: 1,
+                totalPages: 1
             });
         } catch (err) {
             console.error('viewIndexSales error:', err);
-            res.status(500).send('Gagal memuat halaman penjualan.');
+            next(err);
         }
     },
 
-
-    getAllSales: async (req, res) => {
+    // 🔷 Data lengkap semua sales (untuk API)
+    getAllSales: async (req, res, next) => {
         try {
-            const data = await salesModel.getAllSalesTransactions();
+            const data = await salesModel.getSalesBySearchAndLimit('', 1000, 0);
             res.json(data);
         } catch (err) {
             console.error('getAllSales error:', err);
-            res.status(500).json({ message: 'Gagal mengambil data penjualan.' });
+            next(err);
         }
     },
 
-    getAllSalesLimit: async (req, res) => {
+    // 🔷 List sales dengan search + limit + page (AJAX)
+    listSales: async (req, res, next) => {
         try {
-            const limit = parseInt(req.params.limit);
-            const data = await salesModel.getAllSalesTransactionsLimit(limit);
-            res.json(data);
-        } catch (err) {
-            console.error('getAllSalesLimit error:', err);
-            res.status(500).json({ message: 'Gagal mengambil data penjualan dengan limit.' });
-        }
-    },
+            const search = req.query.search || '';
+            const limit = parseInt(req.query.limit) || 10;
+            const page = parseInt(req.query.page) || 1;
+            const offset = (page - 1) * limit;
 
-    getSalesById: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const data = await salesModel.getSalesById(id);
-            if (!data) {
-                return res.status(404).json({ message: 'Transaksi tidak ditemukan.' });
+            const [sales, totalData] = await Promise.all([
+                salesModel.getSalesBySearchAndLimit(search, limit, offset),
+                salesModel.countSalesBySearch(search)
+            ]);
+
+            const totalPages = Math.ceil(totalData / limit);
+
+            if (req.xhr) {
+                res.render('sales/_table', { sales, search, limit, page, totalPages, title: 'Data Penjualan' }, (err, html) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send('Gagal render data.');
+                    }
+                    res.send(html);
+                });
+            } else {
+                res.render('sales/index', {
+                    title: 'Data Penjualan',
+                    sales,
+                    search,
+                    limit,
+                    page,
+                    totalPages,
+                    message: req.session.message || null
+                });
+                delete req.session.message;
             }
-            res.json(data);
         } catch (err) {
-            console.error('getSalesById error:', err);
-            res.status(500).json({ message: 'Gagal mengambil data transaksi.' });
+            console.error('listSales error:', err);
+            next(err);
         }
     },
 
-    viewSalesDetail: async (req, res) => {
+    // 🔷 Detail view (render HTML)
+    viewSalesDetail: async (req, res, next) => {
         try {
-            const { id } = req.params;
-            const detailData = await salesModel.getSalesTransactionDetail(id);
-
-            if (!detailData) {
-                return res.status(404).send('Detail transaksi tidak ditemukan.');
-            }
-
-            const { header, orders, payments } = detailData;
-
-            // Gabungkan semua data ke satu objek `detail` agar cocok dengan detail.ejs
-            const detail = {
-                ...header,
-                orders,
-                payments
-            };
+            const detail = await salesModel.getSalesTransactionDetail(req.params.id);
+            if (!detail) return res.status(404).send('Transaksi tidak ditemukan.');
 
             res.render('sales/details', {
                 title: 'Detail Transaksi Penjualan',
-                detail
+                detail: {
+                    ...detail.header,
+                    orders: detail.orders,
+                    payments: detail.payments
+                }
             });
         } catch (err) {
             console.error('viewSalesDetail error:', err);
-            res.status(500).send('Gagal memuat detail transaksi.');
+            next(err);
         }
     },
 
-    createSales: async (req, res) => {
+    // 🔷 Tambah transaksi
+    createSales: async (req, res, next) => {
         try {
-            const transactionId = "P003";
-            const { admin_id, customer_id } = req.body;
-            await salesModel.createSalesTransaction(transactionId, admin_id, customer_id);
-            res.status(201).json({ message: 'Transaksi berhasil dibuat.', transactionId });
+            const { transaction_id, admin_id, customer_id } = req.body;
+            await salesModel.createSalesTransaction(transaction_id, admin_id, customer_id);
+
+            req.session.message = { type: 'success', text: 'Transaksi berhasil ditambahkan!' };
+            res.redirect('/sales');
         } catch (err) {
             console.error('createSales error:', err);
-            res.status(500).json({ message: 'Gagal membuat transaksi.' });
+            req.session.message = { type: 'danger', text: 'Gagal menambahkan transaksi!' };
+            res.redirect('/sales');
         }
     },
 
-    addOrderToSales: async (req, res) => {
+    // 🔷 Tambah item
+    addOrderToSales: async (req, res, next) => {
         try {
-            const orderId = "hello";
-            const { sales_transaction_id, item_code, quantity, unit_price } = req.body;
-            await salesModel.insertSalesOrder(orderId, sales_transaction_id, item_code, quantity, unit_price);
-            res.status(201).json({ message: 'Item berhasil ditambahkan ke transaksi.', orderId });
+            const { order_id, sales_transaction_id, item_code, quantity, unit_price } = req.body;
+            await salesModel.insertSalesOrder(order_id, sales_transaction_id, item_code, quantity, unit_price);
+            res.status(201).json({ message: 'Item berhasil ditambahkan.' });
         } catch (err) {
             console.error('addOrderToSales error:', err);
-            res.status(500).json({ message: 'Gagal menambahkan item.' });
+            next(err);
         }
     },
 
-    addPaymentToSales: async (req, res) => {
+    // 🔷 Tambah pembayaran
+    addPaymentToSales: async (req, res, next) => {
         try {
-            const paymentId = "hello";
-            const { sales_transaction_id, payment_amount, payment_method } = req.body;
-            await salesModel.insertSalesPayment(paymentId, sales_transaction_id, payment_amount, payment_method);
-            res.status(201).json({ message: 'Pembayaran berhasil ditambahkan.', paymentId });
+            const { payment_id, sales_transaction_id, payment_amount, payment_method } = req.body;
+            await salesModel.insertSalesPayment(payment_id, sales_transaction_id, payment_amount, payment_method);
+            res.status(201).json({ message: 'Pembayaran berhasil ditambahkan.' });
         } catch (err) {
             console.error('addPaymentToSales error:', err);
-            res.status(500).json({ message: 'Gagal menambahkan pembayaran.' });
+            next(err);
         }
     },
 
-    updateSales: async (req, res) => {
+    // 🔷 Update transaksi
+    updateSales: async (req, res, next) => {
         try {
             const { id } = req.params;
             const { total_amount, status } = req.body;
             await salesModel.updateSalesById(id, total_amount, status);
-            res.json({ message: 'Transaksi berhasil diperbarui.' });
+
+            req.session.message = { type: 'success', text: 'Transaksi berhasil diperbarui.' };
+            res.redirect('/sales');
         } catch (err) {
             console.error('updateSales error:', err);
-            res.status(500).json({ message: 'Gagal memperbarui transaksi.' });
+            req.session.message = { type: 'danger', text: 'Gagal memperbarui transaksi!' };
+            res.redirect('/sales');
         }
     },
 
-    deleteSales: async (req, res) => {
+    // 🔷 Hapus transaksi
+    deleteSales: async (req, res, next) => {
         try {
             const { id } = req.params;
             await salesModel.deleteSalesById(id);
-            res.json({ message: 'Transaksi berhasil dihapus.' });
+
+            req.session.message = { type: 'success', text: 'Transaksi berhasil dihapus.' };
+            res.redirect('/sales');
         } catch (err) {
             console.error('deleteSales error:', err);
-            res.status(500).json({ message: 'Gagal menghapus transaksi.' });
+            req.session.message = { type: 'danger', text: 'Gagal menghapus transaksi!' };
+            res.redirect('/sales');
         }
     }
 };
+
+module.exports = salesController;

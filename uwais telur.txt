@@ -1,8 +1,51 @@
-Revisi APP:
-1. Daftar Pelanggan
-2. Daftar Harga - merek - kode merk
-3. Daftar Penjualan
-4. Penjualan Harian
-5. kategori (Lunas, DP, Belum Dibayar)
-6. tampilan jumlah bayar pada nota.
-7. 
+============================================================
+UWAIS TELUR - APLIKASI TRANSAKSI PENJUALAN TELUR
+============================================================
+
+Deskripsi:
+-----------
+Uwais Telur adalah aplikasi web yang dirancang untuk membantu pelaku usaha dalam mengelola penjualan telur. Aplikasi ini menyediakan fitur-fitur seperti manajemen pelanggan, pengelolaan stok barang, pencatatan transaksi, dan laporan keuangan.
+
+Fitur Utama:
+-------------
+1. Manajemen Pelanggan
+2. Manajemen Barang
+3. Transaksi Penjualan dan Pembelian
+4. Cetak nota
+5. Backup Data
+6. Antarmuka Pengguna Responsif
+
+Teknologi:
+-----------
+- Backend: Node.js, Express.js
+- Frontend: EJS, Bootstrap 5
+- Database: MongoDB
+- Lainnya: Mongoose, ESLint, dotenv
+
+Struktur Direktori:
+--------------------
+- backend/: Logika aplikasi (controller, model, route)
+- config/: Konfigurasi database dan variabel lingkungan
+- frontend/views/: Template EJS
+- public/: File statis (CSS, JS)
+- utils/: Fungsi utilitas
+- app.js: Entry point aplikasi
+- package.json: Informasi proyek dan dependensi
+
+Instalasi:
+-----------
+1. Klon repositori: git clone https://github.com/Nopall-Donat/uwais-telur.git
+2. Masuk ke direktori: cd uwais-telur
+3. Instal dependensi: npm install
+4. Konfigurasi .env
+5. Jalankan aplikasi: npm start
+
+Lisensi:
+---------
+Screamemost
+
+Kontak:
+--------
+Untuk pertanyaan atau kontribusi, silakan hubungi [naufalarif09@gmail.com]
+
+============================================================

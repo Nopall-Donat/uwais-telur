@@ -163,16 +163,6 @@ const customersController = {
             res.redirect('/');
         }
     },
-
-    getCustomerNameList: async (req, res, next) => {
-        try {
-            const customers = await customerModel.getCustomerNameList();
-            res.json(customers);
-        } catch (err) {
-            console.error('getCustomerNameList error:', err);
-            next(err);
-        }
-    }
 };
 
 module.exports = customersController;

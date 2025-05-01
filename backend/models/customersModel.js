@@ -87,21 +87,6 @@ module.exports = {
         }
     },
 
-    // 7. Untuk dropdown
-    getCustomerNameList: async () => {
-        try {
-            const db = await dbPromise;
-            return await db.all(`
-                SELECT customer_id, name
-                FROM customers
-                ORDER BY name ASC
-            `);
-        } catch (err) {
-            console.error('customerModel.getCustomerNameList error:', err);
-            throw err;
-        }
-    },
-
     getCustomersPaginated: async (searchTerm, limit, offset) => {
         try {
             const db = await dbPromise;
