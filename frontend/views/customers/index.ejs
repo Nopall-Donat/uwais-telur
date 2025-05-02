@@ -60,32 +60,22 @@
                                             <%= title %>
                                         </h5>
 
-                                        <div class="d-flex justify-content-between">
-                                            <!-- SEARCH DAN LIMIT -->
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <!-- Search & Limit -->
                                             <div class="d-flex align-items-center w-25">
-                                                <div class="search-bar p-1 border border-2 my-2">
-                                                    <input id="searchInput" type="text" class="border-0"
-                                                        placeholder="Search" aria-label="Search"
-                                                        aria-describedby="basic-addon1" value="<%= search %>">
-                                                    <a href="javascript:void(0);" class="bx-color"><i
-                                                            class="bi bi-search"></i></a>
-                                                </div>
-                                                <div class="dropdown m-2">
-                                                    <select id="limitSelect" class="form-select"
-                                                        aria-label="Select Limit">
-                                                        <option value="5" <%=limit==5 ? 'selected' : '' %>>5</option>
-                                                        <option value="10" <%=limit==10 ? 'selected' : '' %>>10</option>
-                                                        <option value="15" <%=limit==15 ? 'selected' : '' %>>15</option>
-                                                        <option value="20" <%=limit==20 ? 'selected' : '' %>>20</option>
-                                                        <option value="30" <%=limit==30 ? 'selected' : '' %>>30</option>
-                                                    </select>
-                                                </div>
+                                                <input type="text" id="searchInput" class="form-control me-2"
+                                                    placeholder="Cari Pelanggan..." value="<%= search %>">
+                                                <select id="limitSelect" class="form-select w-auto">
+                                                    <option value="5" <%=limit==5 ? 'selected' : '' %>>5</option>
+                                                    <option value="10" <%=limit==10 ? 'selected' : '' %>>10</option>
+                                                    <option value="20" <%=limit==20 ? 'selected' : '' %>>20</option>
+                                                    <option value="50" <%=limit==30 ? 'selected' : '' %>>30</option>
+                                                </select>
                                             </div>
-
-                                            <!-- BUTTON TAMBAH -->
-                                            <div class="d-flex align-items-center w-25 justify-content-end mx-2">
-                                                <button type="button" class="bi bi-plus-lg btn btn-primary"
-                                                    data-bs-toggle="modal" data-bs-target="#tambahBaru"></button>
+                                            <div>
+                                                <button type="button" class="bi bi-plus-lg btn btn-primary mx-2" data-bs-toggle="modal"
+                                                        data-bs-target="#tambahBaru">
+                                                </button>
                                             </div>
                                         </div>
 
@@ -160,10 +150,10 @@
 
                 </main><!-- End #main -->
 
-                <!-- ======= Footer ======= -->
-                <%- include('../layout/footer') %>
 
+                <script src="/assets/js/pageScript/customers.js"></script>
     </body>
-    <%- include('./scriptCustomer') %>
+    <!-- ======= Footer ======= -->
+    <%- include('../layout/footer') %>
 
 </html>

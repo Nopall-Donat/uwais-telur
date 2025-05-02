@@ -1,17 +1,17 @@
 <% if (customers && customers.length> 0) { %>
     <table class="table table-hover table-responsive mt-3" id="customersTable">
-        <thead>
+        <thead class="text-center ">
             <tr>
                 <th scope="col">ID Pelanggan</th>
                 <th scope="col">Nama Pelanggan</th>
                 <th scope="col">Alamat</th>
                 <th scope="col">Nomor Telepon</th>
                 <th scope="col">Tanggal Bergabung</th>
-                <th scope="col">Aksi</th>
-                <th scope="col">Delete</th>
+                <th scope="col">Detail</th>
+                <th scope="col">Hapus</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="text-center">
             <% customers.forEach(customer=> { %>
                 <tr>
                     <td>
@@ -34,8 +34,8 @@
                             class="btn btn-sm btn-primary">Detail</a>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-danger"
-                            onclick="deleteCustomer('<%= customer.customer_id %>')">Delete</button>
+                        <button class="btn btn-delete btn-danger btn-sm"
+                            data-id="<%= customer.customer_id %>">Hapus</button>
                     </td>
                 </tr>
                 <% }) %>

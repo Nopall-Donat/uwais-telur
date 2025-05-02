@@ -1,5 +1,6 @@
 const salesModel = require('../models/salesModel');
-const customerModel = require('../models/customersModel'); 
+const customerModel = require('../models/customersModel');
+const itemsModel = require('../models/itemsModel');
 
 const salesController = {
     // 🔷 View halaman utama
@@ -83,14 +84,17 @@ const salesController = {
         try {
             const detail = await salesModel.getSalesTransactionDetail(req.params.id);
             if (!detail) return res.status(404).send('Transaksi tidak ditemukan.');
-
+    
+            const itemListFromDB = await itemsModel.getAllItems(); // ⬅️ INI WAJIB
+    
             res.render('sales/details', {
                 title: 'Detail Transaksi Penjualan',
                 detail: {
                     ...detail.header,
                     orders: detail.orders,
                     payments: detail.payments
-                }
+                },
+                items: itemListFromDB // ⬅️ PASTIKAN INI ADA
             });
         } catch (err) {
             console.error('viewSalesDetail error:', err);

@@ -9,119 +9,89 @@
 
                 <main id="main" class="main">
                     <div class="pagetitle">
-                        <h1>
-                            <%= title %>
+                        <h1>Data Transaksi - <%= detail.id %>
                         </h1>
+                        <nav>
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                                <li class="breadcrumb-item active">Detail Transaksi</li>
+                            </ol>
+                        </nav>
                     </div>
 
-                    <section class="section">
-                        <div class="row">
-                            <div class="col-lg-12">
-
-                                <div class="card">
-                                    <div class="card-body pt-4">
-                                        <h5 class="card-title">Informasi Transaksi</h5>
-
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <strong>ID Transaksi:</strong>
-                                                <%= detail.id %><br>
-                                                    <strong>Nama Pelanggan:</strong>
-                                                    <%= detail.customer_name %><br>
-                                                        <strong>Alamat:</strong>
-                                                        <%= detail.customer_address %><br>
-                                                            <strong>No. HP:</strong>
-                                                            <%= detail.customer_phone %>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <strong>Admin:</strong>
-                                                <%= detail.admin_name %><br>
-                                                    <strong>Status:</strong>
-                                                    <%= detail.status_pembayaran %><br>
-                                                        <strong>Waktu Transaksi:</strong>
-                                                        <%= detail.transaction_time %><br>
-                                                            <strong>Total Tagihan:</strong> Rp <%= detail.total_tagihan
-                                                                %>
-                                            </div>
-                                        </div>
-
-                                        <hr>
-
-                                        <h5 class="mt-4">Rincian Pesanan</h5>
-                                        <% if (detail.orders.length> 0) { %>
-                                            <table class="table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Item</th>
-                                                        <th>Kode</th>
-                                                        <th>Jumlah</th>
-                                                        <th>Harga Satuan</th>
-                                                        <th>Subtotal</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <% detail.orders.forEach(order=> { %>
-                                                        <tr>
-                                                            <td>
-                                                                <%= order.item_type %>
-                                                            </td>
-                                                            <td>
-                                                                <%= order.item_code %>
-                                                            </td>
-                                                            <td>
-                                                                <%= order.quantity %>
-                                                            </td>
-                                                            <td>Rp <%= order.unit_price %>
-                                                            </td>
-                                                            <td>Rp <%= order.subtotal_price %>
-                                                            </td>
-                                                        </tr>
-                                                        <% }); %>
-                                                </tbody>
-                                            </table>
-                                            <% } else { %>
-                                                <p class="text-muted">Belum ada item yang ditambahkan.</p>
-                                                <% } %>
-
-                                                    <hr>
-
-                                                    <h5 class="mt-4">Pembayaran</h5>
-                                                    <% if (detail.payments.length> 0) { %>
-                                                        <table class="table">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Jumlah</th>
-                                                                    <th>Metode</th>
-                                                                    <th>Waktu</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <% detail.payments.forEach(pay=> { %>
-                                                                    <tr>
-                                                                        <td>Rp <%= pay.payment_amount %>
-                                                                        </td>
-                                                                        <td>
-                                                                            <%= pay.payment_method %>
-                                                                        </td>
-                                                                        <td>
-                                                                            <%= pay.payment_time %>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <% }); %>
-                                                            </tbody>
-                                                        </table>
-                                                        <% } else { %>
-                                                            <p class="text-muted">Belum ada pembayaran.</p>
-                                                            <% } %>
-                                    </div>
-                                </div>
-
-                            </div>
+                    <!-- Informasi Pelanggan -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Informasi Pelanggan</h5>
+                            <ul class="list-group list-group-flush mb-0">
+                                <li class="list-group-item"><strong>Nama:</strong>
+                                    <%= detail.customer_name %>
+                                </li>
+                                <li class="list-group-item"><strong>Alamat:</strong>
+                                    <%= detail.customer_address %>
+                                </li>
+                                <li class="list-group-item"><strong>No. HP:</strong>
+                                    <%= detail.customer_phone %>
+                                </li>
+                            </ul>
                         </div>
-                    </section>
+                    </div>
+
+                    <!-- Daftar Pesanan -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Daftar Pesanan</h5>
+                            <table class="table table-bordered" id="orderTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID Order</th>
+                                        <th>Kode Item</th>
+                                        <th>Nama Item</th>
+                                        <th>Jumlah</th>
+                                        <th>Harga Satuan</th>
+                                        <th>Subtotal</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orderTableBody">
+                                    <!-- Baris pesanan akan ditambahkan via JS -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-sm btn-primary" id="btnTambahOrder">
+                                <i class="bi bi-plus"></i> Tambah Item
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Informasi Transaksi -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Informasi Transaksi</h5>
+                            <ul class="list-group list-group-flush mb-0">
+                                <li class="list-group-item"><strong>Admin:</strong>
+                                    <%= detail.admin_name %>
+                                </li>
+                                <li class="list-group-item"><strong>Waktu Transaksi:</strong>
+                                    <%= detail.transaction_time %>
+                                </li>
+                                <li class="list-group-item"><strong>Status Pembayaran:</strong>
+                                    <%= detail.status_pembayaran %>
+                                </li>
+                                <li class="list-group-item"><strong>Total Tagihan:</strong> Rp <span id="totalAmount">
+                                        <%= detail.total_tagihan %>
+                                </span></li>
+                            </ul>
+                        </div>
+                    </div>
                 </main>
 
-                <%- include('../layout/footer') %>
+                <!-- Data item disimpan di script terpisah -->
+                <script id="item-data" type="application/json">
+                    <%- JSON.stringify(items).replace(/</g, '\\u003c') %>
+                </script>                
+
+                <script src="/assets/js/pageScript/sales.js"></script>
     </body>
+<%- include('../layout/footer') %>
 
 </html>

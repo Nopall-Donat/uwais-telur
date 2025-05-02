@@ -1,6 +1,6 @@
 <% if (sales && sales.length> 0) { %>
-    <table class="table table-hover mt-3">
-        <thead>
+    <table class="table table-hover mt-3 mx-auto">
+        <thead class="text-center">
             <tr>
                 <th>ID Transaksi</th>
                 <th>Nama Pelanggan</th>
@@ -14,7 +14,7 @@
                 <th>Hapus</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody class="text-center">
             <% sales.forEach(tx=> { %>
                 <tr>
                     <td>
@@ -31,7 +31,17 @@
                     <td>Rp <%= tx.total_bayar %>
                     </td>
                     <td>
-                        <%= tx.status_pembayaran %>
+                        <% if (tx.status_pembayaran==='completed' ) { %>
+                        <span class="badge bg-success"><%= tx.status_pembayaran %></span>
+                        <% } else if (tx.status_pembayaran==='pending' ) { %>
+                        <span class="badge bg-warning text-dark"><%= tx.status_pembayaran %></span>
+                        <% } else if (tx.status_pembayaran==='canceled' ) { %>
+                        <span class="badge bg-danger"><%= tx.status_pembayaran %></span>
+                        <% } else { %>
+                        <span class="badge bg-secondary">
+                            <%= tx.status_pembayaran %>
+                        </span>
+                        <% } %>
                     </td>
                     <td>
                         <%= tx.waktu_transaksi %>
@@ -40,7 +50,7 @@
                         <%= tx.nama_admin %>
                     </td>
                     <td><a href="/details/<%= tx.id %>" class="btn btn-sm btn-primary">Detail</a></td>
-                    <td><button class="btn btn-sm btn-danger" onclick="deleteSales('<%= tx.id %>')">Hapus</button></td>
+                    <td><button class="btn btn-sm btn-danger btn-delete" data-id="<%= tx.id %>">Hapus</button></td>
                 </tr>
                 <% }); %>
         </tbody>

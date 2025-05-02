@@ -38,7 +38,7 @@
                                                     <option value="5" <%=limit==5 ? 'selected' : '' %>>5</option>
                                                     <option value="10" <%=limit==10 ? 'selected' : '' %>>10</option>
                                                     <option value="20" <%=limit==20 ? 'selected' : '' %>>20</option>
-                                                    <option value="50" <%=limit==50 ? 'selected' : '' %>>50</option>
+                                                    <option value="50" <%=limit==30 ? 'selected' : '' %>>30</option>
                                                 </select>
                                             </div>
                                             <div>
@@ -68,7 +68,7 @@
                                                                     Pelanggan</label>
                                                                 <button type="button"
                                                                     class="btn btn-sm btn-outline-primary"
-                                                                    onclick="bukaModalTambahPelanggan()"
+                                                                    id="btnTambahPelanggan"
                                                                     data-bs-toggle="tooltip"
                                                                     title="Tambah pelanggan jika belum terdaftar">
                                                                     <i class="bi bi-plus-lg"></i>
@@ -165,8 +165,8 @@
                     </section>
                 </main>
 
-                <%- include('../layout/footer') %>
-                    <%- include('./scriptSales') %>
+                <script src="/assets/js/pageScript/sales.js"></script>
     </body>
+<%- include('../layout/footer') %>
 
 </html>

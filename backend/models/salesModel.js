@@ -30,7 +30,12 @@ module.exports = {
                     a.admin_name LIKE ? OR
                     st.status LIKE ? OR
                     st.transaction_time LIKE ?
-                ORDER BY st.transaction_time DESC
+                ORDER BY datetime(
+                    substr(st.transaction_time, 7, 4) || '-' || 
+                    substr(st.transaction_time, 4, 2) || '-' || 
+                    substr(st.transaction_time, 1, 2) || ' ' || 
+                    substr(st.transaction_time, 12)
+                ) DESC
                 LIMIT ? OFFSET ?
             `;
             return await db.all(query, [term, term, term, term, term, term, limit, offset]);

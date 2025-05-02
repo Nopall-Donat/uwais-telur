@@ -8,14 +8,16 @@ module.exports = {
             return await db.all(`
                 SELECT *
                 FROM customers
-                ORDER BY created_at DESC
+                ORDER BY datetime(
+                    substr(created_at, 7, 4) || '-' || substr(created_at, 4, 2) || '-' || substr(created_at, 1, 2) || ' ' || substr(created_at, 12)
+                ) DESC
             `);
         } catch (err) {
             console.error('customerModel.getAllCustomer error:', err);
             throw err;
         }
     },
-
+    
     // Untuk ambil semua customer berdasarkan tanggal di ID (Pddmmyy%)
     getCustomersByDate: async (datePart) => {
         try {
