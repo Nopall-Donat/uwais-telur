@@ -5,7 +5,7 @@ module.exports = {
     getSalesBySearchAndLimit: async (search, limit, offset = 0) => {
         try {
             const db = await dbPromise;
-            const term = `%${search}%`;
+            const term = `%${search.toLowerCase()}%`;
             const query = `
                 SELECT 
                     st.sales_transaction_id AS id,
@@ -24,12 +24,18 @@ module.exports = {
                 JOIN customers c ON st.customer_id = c.customer_id
                 JOIN admins a ON st.admin_id = a.admin_id
                 WHERE 
-                    st.sales_transaction_id LIKE ? OR
-                    c.name LIKE ? OR
-                    c.address LIKE ? OR
-                    a.admin_name LIKE ? OR
-                    st.status LIKE ? OR
-                    st.transaction_time LIKE ?
+                    LOWER(st.sales_transaction_id) LIKE ? OR
+                    LOWER(c.name) LIKE ? OR
+                    LOWER(c.address) LIKE ? OR
+                    LOWER(a.admin_name) LIKE ? OR
+                    LOWER(st.status) LIKE ? OR
+                    LOWER(st.transaction_time) LIKE ? OR
+                    LOWER(CAST(st.total_amount AS TEXT)) LIKE ? OR
+                    LOWER(CAST((
+                        SELECT COALESCE(SUM(sp.payment_amount), 0)
+                        FROM sales_payments sp
+                        WHERE sp.sales_transaction_id = st.sales_transaction_id
+                    ) AS TEXT)) LIKE ?
                 ORDER BY datetime(
                     substr(st.transaction_time, 7, 4) || '-' || 
                     substr(st.transaction_time, 4, 2) || '-' || 
@@ -38,37 +44,45 @@ module.exports = {
                 ) DESC
                 LIMIT ? OFFSET ?
             `;
-            return await db.all(query, [term, term, term, term, term, term, limit, offset]);
+            return await db.all(query, [
+                term, term, term, term, term, term, term, term, limit, offset
+            ]);
         } catch (err) {
             console.error('salesModel.getSalesBySearchAndLimit error:', err);
             throw err;
         }
     },
-
+    
     // 2. Hitung total data transaksi untuk pagination
     countSalesBySearch: async (search) => {
         try {
             const db = await dbPromise;
-            const term = `%${search}%`;
+            const term = `%${search.toLowerCase()}%`;
             const result = await db.get(`
                 SELECT COUNT(*) as total
                 FROM sales_transactions st
                 JOIN customers c ON st.customer_id = c.customer_id
                 JOIN admins a ON st.admin_id = a.admin_id
                 WHERE 
-                    st.sales_transaction_id LIKE ? OR
-                    c.name LIKE ? OR
-                    c.address LIKE ? OR
-                    a.admin_name LIKE ? OR
-                    st.status LIKE ? OR
-                    st.transaction_time LIKE ?
-            `, [term, term, term, term, term, term]);
+                    LOWER(st.sales_transaction_id) LIKE ? OR
+                    LOWER(c.name) LIKE ? OR
+                    LOWER(c.address) LIKE ? OR
+                    LOWER(a.admin_name) LIKE ? OR
+                    LOWER(st.status) LIKE ? OR
+                    LOWER(st.transaction_time) LIKE ? OR
+                    LOWER(CAST(st.total_amount AS TEXT)) LIKE ? OR
+                    LOWER(CAST((
+                        SELECT COALESCE(SUM(sp.payment_amount), 0)
+                        FROM sales_payments sp
+                        WHERE sp.sales_transaction_id = st.sales_transaction_id
+                    ) AS TEXT)) LIKE ?
+            `, [term, term, term, term, term, term, term, term]);
             return result.total || 0;
         } catch (err) {
             console.error('salesModel.countSalesBySearch error:', err);
             throw err;
         }
-    },
+    },    
 
     // 3. Ambil detail transaksi (header + order + payment)
     getSalesTransactionDetail: async (transactionId) => {
@@ -130,7 +144,7 @@ module.exports = {
             const db = await dbPromise;
             await db.run(`
                 INSERT INTO sales_transactions (sales_transaction_id, admin_id, customer_id, total_amount, status, transaction_time)
-                VALUES (?, ?, ?, 0, 'pending', CURRENT_TIMESTAMP)
+                VALUES (?, ?, ?, 0, 'Belum Lunas', CURRENT_TIMESTAMP)
             `, [transactionId, adminId, customerId]);
             return transactionId;
         } catch (err) {

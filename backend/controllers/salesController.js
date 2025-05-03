@@ -7,14 +7,15 @@ const salesController = {
     viewIndexSales: async (req, res, next) => {
         try {
             const sales = await salesModel.getSalesBySearchAndLimit('', 10, 0);
-            const customers = await customerModel.getAllCustomer(); // ← tambahkan ini
+            const customers = await customerModel.getAllCustomer();
+
             const message = req.session.message || null;
             delete req.session.message;
 
             res.render('sales/index', {
                 title: 'Data Penjualan',
                 sales,
-                customers, // ← kirim ini ke EJS
+                customers,
                 message,
                 search: '',
                 limit: 10,
@@ -41,7 +42,7 @@ const salesController = {
     // 🔷 List sales dengan search + limit + page (AJAX)
     listSales: async (req, res, next) => {
         try {
-            const search = req.query.search || '';
+            const search = req.query.search?.toLowerCase() || '';
             const limit = parseInt(req.query.limit) || 10;
             const page = parseInt(req.query.page) || 1;
             const offset = (page - 1) * limit;
@@ -51,10 +52,28 @@ const salesController = {
                 salesModel.countSalesBySearch(search)
             ]);
 
+            const statusList = ['lunas', 'belum lunas', 'dibatalkan'];
+            const keyword = search.trim().toLowerCase();
+
+            let filteredSales = sales;
+
+            if (statusList.includes(keyword)) {
+                filteredSales = sales.filter(tx =>
+                    tx.status_pembayaran.toLowerCase() === keyword
+                );
+            }
+
             const totalPages = Math.ceil(totalData / limit);
 
             if (req.xhr) {
-                res.render('sales/_table', { sales, search, limit, page, totalPages, title: 'Data Penjualan' }, (err, html) => {
+                res.render('sales/_table', {
+                    sales: filteredSales,
+                    search,
+                    limit,
+                    page,
+                    totalPages,
+                    title: 'Data Penjualan'
+                }, (err, html) => {
                     if (err) {
                         console.error(err);
                         return res.status(500).send('Gagal render data.');
@@ -64,7 +83,7 @@ const salesController = {
             } else {
                 res.render('sales/index', {
                     title: 'Data Penjualan',
-                    sales,
+                    sales: filteredSales,
                     search,
                     limit,
                     page,
@@ -84,9 +103,9 @@ const salesController = {
         try {
             const detail = await salesModel.getSalesTransactionDetail(req.params.id);
             if (!detail) return res.status(404).send('Transaksi tidak ditemukan.');
-    
-            const itemListFromDB = await itemsModel.getAllItems(); // ⬅️ INI WAJIB
-    
+
+            const itemListFromDB = await itemsModel.getAllItems();
+
             res.render('sales/details', {
                 title: 'Detail Transaksi Penjualan',
                 detail: {
@@ -94,7 +113,7 @@ const salesController = {
                     orders: detail.orders,
                     payments: detail.payments
                 },
-                items: itemListFromDB // ⬅️ PASTIKAN INI ADA
+                items: itemListFromDB
             });
         } catch (err) {
             console.error('viewSalesDetail error:', err);

@@ -31,18 +31,13 @@
                     <td>Rp <%= tx.total_bayar %>
                     </td>
                     <td>
-                        <% if (tx.status_pembayaran==='completed' ) { %>
-                        <span class="badge bg-success"><%= tx.status_pembayaran %></span>
-                        <% } else if (tx.status_pembayaran==='pending' ) { %>
-                        <span class="badge bg-warning text-dark"><%= tx.status_pembayaran %></span>
-                        <% } else if (tx.status_pembayaran==='canceled' ) { %>
-                        <span class="badge bg-danger"><%= tx.status_pembayaran %></span>
-                        <% } else { %>
-                        <span class="badge bg-secondary">
+                        <span class="badge 
+                            <%= tx.status_pembayaran === 'Lunas' ? 'bg-success' :
+                                tx.status_pembayaran === 'Belum Lunas' ? 'bg-warning text-dark' :
+                                tx.status_pembayaran === 'Dibatalkan' ? 'bg-danger' : 'bg-secondary' %>">
                             <%= tx.status_pembayaran %>
-                        </span>
-                        <% } %>
-                    </td>
+                        </span>                                      
+                    </td>                    
                     <td>
                         <%= tx.waktu_transaksi %>
                     </td>
