@@ -27,4 +27,7 @@ router.get('/delete/:id', salesController.deleteSales);
 router.post('/order', salesController.addOrderToSales);
 router.post('/payment', salesController.addPaymentToSales);
 
+// Id Generator
+router.get('/generate/order-id', salesController.generateNewOrderId);
+
 module.exports = router;

@@ -3,6 +3,47 @@ const customerModel = require('../models/customersModel');
 const itemsModel = require('../models/itemsModel');
 
 const salesController = {
+    // 🔷 Generate ID baru untuk transaksi penjualan
+    generateNewOrderId: async (req, res, next) => {
+        try {
+            const db = await require('../../config/db');
+            const date = new Date();
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yy = String(date.getFullYear()).toString().slice(-2);
+            const tanggalTag = `${dd}${mm}${yy}`;
+    
+            // Ambil semua ID dari DB yang menggunakan tanggal hari ini
+            const rows = await db.all(`
+                SELECT sales_order_id FROM sales_orders
+                WHERE sales_order_id LIKE ?
+            `, [`SORD%${tanggalTag}`]);
+    
+            const urutanTerpakai = rows
+                .map(r => parseInt(r.sales_order_id.slice(4, 7)))
+                .filter(n => !isNaN(n))
+                .sort((a, b) => a - b);
+    
+            // Cari urutan terkecil yang belum dipakai
+            let next = 1;
+            while (urutanTerpakai.includes(next)) {
+                next++;
+            }
+    
+            const nomor = String(next).padStart(3, '0');
+            const newId = `SORD${nomor}${tanggalTag}`;
+            const usedIds = rows.map(r => r.sales_order_id); // kirim semua id yang sudah dipakai juga
+    
+            res.json({
+                order_id: newId,
+                used_ids: usedIds // kirim ke FE agar bisa validasi dan urut dinamis
+            });
+        } catch (err) {
+            console.error('generateNewOrderId error:', err);
+            res.status(500).json({ error: 'Gagal generate ID.' });
+        }
+    },    
+    
     // 🔷 View halaman utama
     viewIndexSales: async (req, res, next) => {
         try {
@@ -108,11 +149,9 @@ const salesController = {
 
             res.render('sales/details', {
                 title: 'Detail Transaksi Penjualan',
-                detail: {
-                    ...detail.header,
-                    orders: detail.orders,
-                    payments: detail.payments
-                },
+                detail: detail.header,
+                orders: detail.orders,
+                payments: detail.payments,
                 items: itemListFromDB
             });
         } catch (err) {
@@ -189,7 +228,7 @@ const salesController = {
             req.session.message = { type: 'danger', text: 'Gagal menghapus transaksi!' };
             res.redirect('/sales');
         }
-    }
+    },
 };
 
 module.exports = salesController;
