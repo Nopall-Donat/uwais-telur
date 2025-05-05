@@ -26,10 +26,8 @@
                     <td>
                         <%= tx.alamat_pelanggan %>
                     </td>
-                    <td>Rp <%= tx.total_tagihan %>
-                    </td>
-                    <td>Rp <%= tx.total_bayar %>
-                    </td>
+                    <td><%= Number(tx.total_tagihan).toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) %></td>
+                    <td><%= Number(tx.total_bayar).toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }) %></td>                    
                     <td>
                         <span class="badge 
                             <%= tx.status_pembayaran === 'Lunas' ? 'bg-success' :

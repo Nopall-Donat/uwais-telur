@@ -52,7 +52,7 @@ module.exports = {
             throw err;
         }
     },
-    
+
     // 2. Hitung total data transaksi untuk pagination
     countSalesBySearch: async (search) => {
         try {
@@ -82,7 +82,7 @@ module.exports = {
             console.error('salesModel.countSalesBySearch error:', err);
             throw err;
         }
-    },    
+    },
 
     // 3. Ambil detail transaksi (header + order + payment)
     getSalesTransactionDetail: async (transactionId) => {
@@ -137,6 +137,102 @@ module.exports = {
             throw err;
         }
     },
+
+    // 🔹 Cek apakah sales_order_id sudah ada
+    checkOrderIdExists: async (orderId) => {
+        try {
+            const db = await dbPromise;
+            const result = await db.get(`
+                SELECT 1 FROM sales_orders WHERE sales_order_id = ?
+                    `, [orderId]);
+            return !!result;
+        } catch (err) {
+            console.error('salesModel.checkOrderIdExists error:', err);
+            throw err;
+        }
+    },
+
+    // 🔹 Insert satu item order
+    insertSingleSalesOrder: async (orderId, transactionId, itemCode, qty, price) => {
+        try {
+            const db = await dbPromise;
+            const subtotal = qty * price;
+            await db.run(`
+                INSERT INTO sales_orders (
+                    sales_order_id, sales_transaction_id, item_code,
+                    quantity, unit_price, subtotal_price, order_time
+                    ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                `, [orderId, transactionId, itemCode, qty, price, subtotal]);
+        } catch (err) {
+            console.error('salesModel.insertSingleSalesOrder error:', err);
+            throw err;
+        }
+    },
+
+    // Ambil semua ID order dari suatu transaksi
+    getSalesOrderIdsByTransaction: async (transactionId) => {
+        try {
+            const db = await dbPromise;
+            return await db.all(`
+                SELECT sales_order_id FROM sales_orders
+                WHERE sales_transaction_id = ?
+            `, [transactionId]);
+        } catch (err) {
+            console.error('salesModel.getSalesOrderIdsByTransaction error:', err);
+            throw err;
+        }
+    },
+
+    updateTotalAmountByTransactionId: async (transactionId) => {
+        try {
+            const db = await dbPromise;
+            const result = await db.get(`
+                SELECT COALESCE(SUM(subtotal_price), 0) AS total
+                FROM sales_orders
+                WHERE sales_transaction_id = ?
+            `, [transactionId]);
+    
+            const totalAmount = result.total || 0;
+    
+            await db.run(`
+                UPDATE sales_transactions
+                SET total_amount = ?
+                WHERE sales_transaction_id = ?
+            `, [totalAmount, transactionId]);
+        } catch (err) {
+            console.error('salesModel.updateTotalAmountByTransactionId error:', err);
+            throw err;
+        }
+    },    
+
+    // Update item order berdasarkan ID
+    updateSalesOrder: async (orderId, itemCode, qty, price) => {
+        try {
+            const db = await dbPromise;
+            const subtotal = qty * price;
+            await db.run(`
+                UPDATE sales_orders
+                SET item_code = ?, quantity = ?, unit_price = ?, subtotal_price = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE sales_order_id = ?
+            `, [itemCode, qty, price, subtotal, orderId]);
+        } catch (err) {
+            console.error('salesModel.updateSalesOrder error:', err);
+            throw err;
+        }
+    },
+
+    // Hapus order berdasarkan ID
+    deleteSalesOrderById: async (orderId) => {
+        try {
+            const db = await dbPromise;
+            await db.run(`DELETE FROM sales_orders WHERE sales_order_id = ?`, [orderId]);
+        } catch (err) {
+            console.error('salesModel.deleteSalesOrderById error:', err);
+            throw err;
+        }
+    },
+
+    // Belum terpakai ->
 
     // 4. Buat transaksi baru (HEADER)
     createSalesTransaction: async (transactionId, adminId, customerId) => {
@@ -210,5 +306,20 @@ module.exports = {
             console.error('salesModel.deleteSalesById error:', err);
             throw err;
         }
-    }
+    },
+
+    // 9. Generate ID baru untuk transaksi
+    getUsedOrderIdsByDate: async (dateTag) => {
+        try {
+            const db = await dbPromise;
+            const rows = await db.all(`
+            SELECT sales_order_id FROM sales_orders
+            WHERE sales_order_id LIKE ?
+        `, [`SORD%${dateTag}`]);
+            return rows;
+        } catch (err) {
+            console.error('salesModel.getUsedOrderIdsByDate error:', err);
+            throw err;
+        }
+    },
 };

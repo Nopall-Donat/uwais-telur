@@ -6,44 +6,33 @@ const salesController = {
     // 🔷 Generate ID baru untuk transaksi penjualan
     generateNewOrderId: async (req, res, next) => {
         try {
-            const db = await require('../../config/db');
             const date = new Date();
             const dd = String(date.getDate()).padStart(2, '0');
             const mm = String(date.getMonth() + 1).padStart(2, '0');
             const yy = String(date.getFullYear()).toString().slice(-2);
             const tanggalTag = `${dd}${mm}${yy}`;
-    
-            // Ambil semua ID dari DB yang menggunakan tanggal hari ini
-            const rows = await db.all(`
-                SELECT sales_order_id FROM sales_orders
-                WHERE sales_order_id LIKE ?
-            `, [`SORD%${tanggalTag}`]);
-    
+
+            const rows = await salesModel.getUsedOrderIdsByDate(tanggalTag);
+
             const urutanTerpakai = rows
                 .map(r => parseInt(r.sales_order_id.slice(4, 7)))
                 .filter(n => !isNaN(n))
                 .sort((a, b) => a - b);
-    
-            // Cari urutan terkecil yang belum dipakai
+
             let next = 1;
-            while (urutanTerpakai.includes(next)) {
-                next++;
-            }
-    
+            while (urutanTerpakai.includes(next)) next++;
+
             const nomor = String(next).padStart(3, '0');
             const newId = `SORD${nomor}${tanggalTag}`;
-            const usedIds = rows.map(r => r.sales_order_id); // kirim semua id yang sudah dipakai juga
-    
-            res.json({
-                order_id: newId,
-                used_ids: usedIds // kirim ke FE agar bisa validasi dan urut dinamis
-            });
+            const usedIds = rows.map(r => r.sales_order_id);
+
+            res.json({ order_id: newId, used_ids: usedIds });
         } catch (err) {
             console.error('generateNewOrderId error:', err);
             res.status(500).json({ error: 'Gagal generate ID.' });
         }
-    },    
-    
+    },
+
     // 🔷 View halaman utama
     viewIndexSales: async (req, res, next) => {
         try {
@@ -178,14 +167,69 @@ const salesController = {
     // 🔷 Tambah item
     addOrderToSales: async (req, res, next) => {
         try {
-            const { order_id, sales_transaction_id, item_code, quantity, unit_price } = req.body;
-            await salesModel.insertSalesOrder(order_id, sales_transaction_id, item_code, quantity, unit_price);
-            res.status(201).json({ message: 'Item berhasil ditambahkan.' });
+            const ensureArray = val => Array.isArray(val) ? val : [val];
+    
+            const orderIds = ensureArray(req.body.order_id);
+            const itemCodes = ensureArray(req.body.item_code);
+            const quantities = ensureArray(req.body.quantity);
+            const unitPrices = ensureArray(req.body.unit_price);
+            const transactionId = req.body.sales_transaction_id;
+    
+            if (!transactionId) {
+                return res.status(400).json({ error: 'ID transaksi tidak ditemukan.' });
+            }
+    
+            // 🔍 Ambil ID yang sudah ada di database
+            const existingRows = await salesModel.getSalesOrderIdsByTransaction(transactionId);
+            const existingIds = new Set(existingRows.map(row => row.sales_order_id));
+            const formIds = new Set();
+    
+            let updatedCount = 0;
+    
+            for (let i = 0; i < orderIds.length; i++) {
+                const id = orderIds[i];
+                const item = itemCodes[i];
+                const qty = parseInt(quantities[i]);
+                const price = parseInt(unitPrices[i]);
+    
+                if (!id || !item || isNaN(qty) || isNaN(price) || qty <= 0 || price < 0) continue;
+    
+                formIds.add(id);
+    
+                if (existingIds.has(id)) {
+                    await salesModel.updateSalesOrder(id, item, qty, price);
+                } else {
+                    await salesModel.insertSingleSalesOrder(id, transactionId, item, qty, price);
+                }
+    
+                updatedCount++;
+            }
+    
+            if (updatedCount === 0) {
+                return res.status(400).json({ error: 'Tidak ada data valid untuk disimpan.' });
+            }
+    
+            // ❌ Hapus order yang dihapus di frontend
+            for (const existingId of existingIds) {
+                if (!formIds.has(existingId)) {
+                    await salesModel.deleteSalesOrderById(existingId);
+                }
+            }
+    
+            // ✅ Update total tagihan
+            await salesModel.updateTotalAmountByTransactionId(transactionId);
+    
+            res.status(200).json({ message: 'Pesanan berhasil diperbarui.' });
         } catch (err) {
             console.error('addOrderToSales error:', err);
-            next(err);
+            res.status(500).json({ error: 'Gagal menyimpan pesanan.' });
         }
-    },
+    },    
+
+
+
+
+    // Belum terpakai ->
 
     // 🔷 Tambah pembayaran
     addPaymentToSales: async (req, res, next) => {

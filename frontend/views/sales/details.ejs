@@ -23,17 +23,25 @@
                     <div class="card mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Informasi Pelanggan</h5>
-                            <ul class="list-group list-group-flush mb-0">
-                                <li class="list-group-item"><strong>Nama:</strong>
-                                    <%= detail.customer_name %>
-                                </li>
-                                <li class="list-group-item"><strong>Alamat:</strong>
-                                    <%= detail.customer_address %>
-                                </li>
-                                <li class="list-group-item"><strong>No. HP:</strong>
-                                    <%= detail.customer_phone %>
-                                </li>
-                            </ul>
+
+                            <div class="mb-2 d-flex">
+                                <div class="fw-bold me-2" style="min-width: 120px;">Nama</div>
+                                <div>: <%= detail.customer_name %>
+                                </div>
+                            </div>
+
+                            <div class="mb-2 d-flex">
+                                <div class="fw-bold me-2" style="min-width: 120px;">Alamat</div>
+                                <div>: <%= detail.customer_address %>
+                                </div>
+                            </div>
+
+                            <div class="mb-2 d-flex">
+                                <div class="fw-bold me-2" style="min-width: 120px;">No. HP</div>
+                                <div>: <%= detail.customer_phone %>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -41,107 +49,208 @@
                     <div class="card mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Daftar Pesanan</h5>
-                            <table class="table table-bordered" id="orderTable">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>ID Order</th>
-                                        <th>Kode Item</th>
-                                        <th>Nama Item</th>
-                                        <th>Jumlah</th>
-                                        <th>Harga Satuan</th>
-                                        <th>Subtotal</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="orderTableBody">
-                                    <% if (orders && orders.length> 0) { %>
-                                        <% orders.forEach((order, index)=> { %>
-                                            <tr data-row-index="<%= index %>">
-                                                <td>
-                                                    <input type="text" class="form-control" name="order_id[]"
-                                                        value="<%= order.sales_order_id %>" readonly>
-                                                </td>
-                                                <td>
-                                                    <select class="form-select item-code-select" name="item_code[]">
-                                                        <option value="">-- Pilih --</option>
-                                                        <% items.forEach(item=> { %>
-                                                            <option value="<%= item.item_code %>"
-                                                                <%=item.item_code===order.item_code ? 'selected' : '' %>
-                                                                ><%= item.item_code %>
-                                                            </option>
-                                                            <% }) %>
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control item-name" name="item_name[]"
-                                                        value="<%= order.item_type %>" readonly>
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control item-qty" name="quantity[]"
-                                                        min="1" value="<%= order.quantity %>">
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control item-price"
-                                                        name="unit_price[]" min="0" step="100"
-                                                        value="<%= order.unit_price %>">
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control item-subtotal"
-                                                        name="subtotal[]" value="<%= order.subtotal_price %>" readonly>
-                                                </td>
-                                                <td>
-                                                    <button type="button" class="btn btn-danger btn-sm btn-delete-row">🗑️</button>
-                                                </td>
-                                            </tr>
-                                            <% }) %>
-                                                <% } else { %>
-                                                    <!-- Jika belum ada pesanan -->
-                                                    <tr>
-                                                        <td colspan="7" class="text-center text-muted">Tidak ada
-                                                            pesanan.</td>
-                                                    </tr>
-                                                    <% } %>
-                                </tbody>
 
-                            </table>
-                            <button type="button" class="btn btn-sm btn-primary" id="btnTambahOrder">
-                                <i class="bi bi-plus"></i> Tambah Item
-                            </button>
+                            <form action="/order" method="POST" id="orderForm">
+                                <input type="hidden" name="sales_transaction_id" value="<%= detail.id %>">
+
+                                <div class="table-responsive">
+                                    <table class="table custom-order-table align-middle">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <th>ID Order</th>
+                                                <th>Kode Item</th>
+                                                <th>Nama Item</th>
+                                                <th>Jumlah</th>
+                                                <th>Harga Satuan</th>
+                                                <th>Subtotal</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="orderTableBody">
+                                            <% if (orders && orders.length> 0) { %>
+                                                <% orders.forEach((order, index)=> { %>
+                                                    <tr data-row-index="<%= index %>" data-persisted="true">
+                                                        <td>
+                                                            <input type="text" name="order_id[]"
+                                                                value="<%= order.sales_order_id %>" readonly
+                                                                class="form-control form-control-sm">
+                                                        </td>
+                                                        <td>
+                                                            <select name="item_code[]"
+                                                                class="form-select item-code-select">
+                                                                <% items.forEach(item=> { %>
+                                                                    <option value="<%= item.item_code %>"
+                                                                        <%=item.item_code===order.item_code ? 'selected'
+                                                                        : '' %>>
+                                                                        <%= item.item_code %>
+                                                                    </option>
+                                                                    <% }) %>
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="item_name[]"
+                                                                value="<%= order.item_type %>" readonly
+                                                                class="form-control item-name">
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" name="quantity[]"
+                                                                value="<%= order.quantity %>" min="1"
+                                                                class="form-control item-qty">
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" name="unit_price[]"
+                                                                value="<%= order.unit_price %>" min="0" step="100"
+                                                                class="form-control item-price">
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" name="subtotal[]"
+                                                                value="<%= order.subtotal_price %>" readonly
+                                                                class="form-control item-subtotal">
+                                                        </td>
+                                                        <td>
+                                                            <button type="button"
+                                                                class="btn btn-danger btn-sm btn-delete-row">🗑️</button>
+                                                        </td>
+                                                    </tr>
+                                                    <% }) %>
+                                                        <% } else { %>
+                                                            <tr>
+                                                                <td colspan="7" class="text-center text-muted">Tidak ada
+                                                                    pesanan.</td>
+                                                            </tr>
+                                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-3">
+                                    <button type="button" class="btn btn-primary btn-sm shadow-sm" id="btnTambahOrder">
+                                        <i class="bi bi-plus-circle me-1"></i> Tambah Item
+                                    </button>
+                                    <button type="submit" class="btn btn-success btn-sm shadow-sm" id="btnSubmitOrder">
+                                        <i class="bi bi-check2-circle me-1"></i> Simpan Pesanan
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
+
 
                     <!-- Informasi Transaksi -->
-                    <div class="card">
+                    <div class="card mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Informasi Transaksi</h5>
-                            <ul class="list-group list-group-flush mb-0">
-                                <li class="list-group-item"><strong>Admin:</strong>
-                                    <%= detail.admin_name %>
-                                </li>
-                                <li class="list-group-item"><strong>Waktu Transaksi:</strong>
-                                    <%= detail.transaction_time %>
-                                </li>
-                                <li class="list-group-item"><strong>Status Pembayaran:</strong>
-                                    <%= detail.status_pembayaran %>
-                                </li>
-                                <li class="list-group-item"><strong>Total Tagihan:</strong> Rp <span id="totalAmount">
-                                        <%= detail.total_tagihan %>
-                                    </span></li>
-                            </ul>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Admin</label>
+                                    <div class="form-control-plaintext">
+                                        <%= detail.admin_name %>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Waktu Transaksi</label>
+                                    <div class="form-control-plaintext">
+                                        <%= detail.transaction_time %>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Status Pembayaran</label>
+                                    <div>
+                                        <% if (detail.status_pembayaran==='completed' ) { %>
+                                            <span class="badge bg-success">Lunas</span>
+                                            <% } else { %>
+                                                <span class="badge bg-warning text-dark">Belum Lunas</span>
+                                                <% } %>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Total Tagihan</label>
+                                    <div class="form-control-plaintext text-danger fw-semibold">
+                                        Rp <span id="totalAmount">
+                                            <%= Number(detail.total_tagihan).toLocaleString('id-ID', { style: 'currency'
+                                                , currency: 'IDR' }).replace("Rp", "" ).trim() %>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- alert -->
+                    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+                        <div id="orderToast" class="toast align-items-center text-bg-success border-0" role="alert">
+                            <div class="d-flex">
+                                <div class="toast-body" id="orderToastBody">
+                                    Data berhasil disimpan.
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                    data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Konfirmasi Hapus Order -->
+                    <div class="modal fade" id="modalKonfirmasiHapusOrder" tabindex="-1" aria-labelledby="modalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-danger">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title" id="modalLabel">Peringatan Serius</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body text-center fs-5">
+                                    <p>Item ini sudah tersimpan di database.</p>
+                                    <p>Apakah Anda yakin ingin <strong class="text-danger">menghapus atau
+                                            mengubah</strong> item ini?</p>
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <!-- Modal Konfirmasi Hapus -->
+                                    <button type="button" class="btn btn-secondary" id="btnBatalHapusOrder" data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-danger" id="btnKonfirmasiHapusOrder" data-bs-dismiss="modal">Ya, Hapus</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Konfirmasi Simpan Pesanan -->
+                    <div class="modal fade" id="modalKonfirmasiSimpan" tabindex="-1" aria-labelledby="modalSimpanLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-success">
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title" id="modalSimpanLabel">Konfirmasi Simpan Pesanan</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body text-center fs-6">
+                                    <p>Apakah Anda yakin ingin menyimpan pesanan ini?</p>
+                                    <p>Pastikan data item sudah benar dan lengkap.</p>
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-success" id="btnKonfirmasiSimpan">Ya,
+                                        Simpan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </main>
 
                 <script id="saved-orders" type="application/json">
                     <%- JSON.stringify(orders.map(o => o.sales_order_id)) %>
-                </script>                  
+                </script>
 
                 <!-- Data item disimpan di script terpisah -->
                 <script id="item-data" type="application/json">
                     <%- JSON.stringify(items).replace(/</g, '\\u003c') %>
                 </script>
 
-                <script src="/assets/js/pageScript/sales.js"></script>
+                <script id="orders-exist-flag" type="application/json">
+                    <%- JSON.stringify(orders.length > 0) %>
+                </script>
+
+                <script src="/assets/js/salesScript/detailsScript.js"></script>
     </body>
     <%- include('../layout/footer') %>
 

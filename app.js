@@ -23,6 +23,10 @@ const PORT = config.port;
 
 // Static files middleware dengan custom 404
 app.use(loggerMiddleware);
+app.get('/.well-known/*', (req, res) => {
+    res.status(204).send(); // Tidak ada konten, respons sukses
+});
+
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -36,8 +40,8 @@ app.use(helmet({
 }));
 app.use(morgan('dev'));
 app.use(flash()); // Middleware untuk flash messages
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.use(session({
     secret: config.session.secret,
