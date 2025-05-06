@@ -32,8 +32,16 @@ coverage/
 *.swn
 .DS_Store
 
-# Build output
-assets/
+# Ignore everything in frontend/assets
+frontend/assets/*
+
+# But keep these folders
+!frontend/assets/css/
+!frontend/assets/js/
+
+# Optional: keep files inside the folders
+!frontend/assets/css/**
+!frontend/assets/js/**
 
 # Cache directories
 .cache/
