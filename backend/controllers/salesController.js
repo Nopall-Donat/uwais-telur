@@ -340,7 +340,6 @@ const salesController = {
     // 🔷 Hapus pembayaran
     deleteSalesPayment: async (req, res) => {
         const { sales_payment_id } = req.body;
-        console.log('ID yang diterima untuk dihapus:', sales_payment_id);
 
         if (!sales_payment_id) {
             return res.status(400).json({ error: 'ID pembayaran wajib disertakan.' });
@@ -354,20 +353,15 @@ const salesController = {
                 return res.status(404).json({ error: 'Pembayaran tidak ditemukan.' });
             }
 
-            // ✅ Hapus pembayaran
             const result = await salesModel.deletePaymentById(sales_payment_id);
             if (result.changes === 0) {
                 return res.status(404).json({ error: 'Pembayaran tidak ditemukan.' });
             }
 
-            // ✅ Hitung ulang total bayar
             const totalPaid = await salesModel.getTotalPaidByTransaction(payment.sales_transaction_id);
-
-            // ✅ Ambil total tagihan dari detail
             const detail = await salesModel.getSalesTransactionDetail(payment.sales_transaction_id);
             const totalTagihan = detail.header.total_tagihan;
 
-            // ✅ Tentukan status baru
             const status = totalPaid >= totalTagihan ? 'Lunas' : 'Belum Lunas';
             await salesModel.updatePaymentStatus(payment.sales_transaction_id, status);
 

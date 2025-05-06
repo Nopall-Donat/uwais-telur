@@ -4,7 +4,6 @@ let tempRows = [];
 let usedUruts = new Set();
 const items = JSON.parse(document.getElementById('item-data').textContent);
 
-
 // ======================
 // ✅ TOAST HANDLER
 // ======================
@@ -29,20 +28,19 @@ function toastError(msg) {
 }
 
 // ======================
-// Helper Functions Order ID
+// 🔢 ORDER ID UTILS
 // ======================
-// 🌐 GLOBAL ORDER ID FUNCTION UTILS
 let orderIdPrefix = '';
 let orderIdTanggal = '';
 let usedIdsFromDB = new Set();
 
 async function fetchInitialOrderIdInfo() {
     try {
-        const res = await fetch('/generate/order-id');
+        const res = await fetch('/purchases/generate/order-id');
         const data = await res.json();
         const fullId = data.order_id;
-        orderIdPrefix = fullId.slice(0, 4);       // e.g. SORD
-        orderIdTanggal = fullId.slice(7);         // e.g. 030525
+        orderIdPrefix = fullId.slice(0, 4);       // e.g. PURD
+        orderIdTanggal = fullId.slice(7);         // e.g. 060525
         usedIdsFromDB = new Set(data.used_ids);
         data.used_ids.forEach(id => {
             const urut = parseInt(id.slice(4, 7));
@@ -103,9 +101,8 @@ async function addOrderRow() {
 }
 
 // ======================
-// Helper Functions Amount
+// 💰 Kalkulasi Subtotal & Total
 // ======================
-// ✅ Update total tagihan
 function updateTotalAmount() {
     const subtotals = document.querySelectorAll('.item-subtotal');
     let total = 0;
@@ -114,7 +111,6 @@ function updateTotalAmount() {
     if (totalAmountDisplay) totalAmountDisplay.textContent = total.toLocaleString('id-ID');
 }
 
-// ✅ Event binding untuk row
 function bindRowEvents(row) {
     const select = row.querySelector('.item-code-select');
     const nameInput = row.querySelector('.item-name');
@@ -132,7 +128,7 @@ function bindRowEvents(row) {
     select.addEventListener('change', () => {
         const selectedItem = items.find(i => i.item_code === select.value);
         nameInput.value = selectedItem ? selectedItem.item_type : '';
-        priceInput.value = selectedItem ? selectedItem.selling_price : 0;
+        priceInput.value = selectedItem ? selectedItem.buying_price : 0;  // 🟡 khusus pembelian
         updateSubtotal();
     });
 
@@ -141,7 +137,6 @@ function bindRowEvents(row) {
 
     updateSubtotal();
 }
-
 // ======================
 // Helper Functions Payment
 // ======================
@@ -162,11 +157,10 @@ function renderRiwayatPembayaran(data) {
             <td>${pembayaran.payment_method}</td>
             <td class="text-center">
                 <button class="btn btn-sm btn-outline-danger btn-hapus-payment"
-                        data-id="${pembayaran.sales_payment_id}">
+                        data-id="${pembayaran.purchase_payment_id}">
                     Hapus
                 </button>
             </td>
-
         `;
         tbody.appendChild(tr);
     });
@@ -176,7 +170,7 @@ async function loadRiwayatPembayaran(transactionId) {
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Memuat data...</td></tr>`;
 
     try {
-        const res = await fetch(`/payments/${transactionId}`);
+        const res = await fetch(`/purchases/payments/${transactionId}`);
         const data = await res.json();
         renderRiwayatPembayaran(data);
     } catch (err) {
@@ -184,9 +178,8 @@ async function loadRiwayatPembayaran(transactionId) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Gagal memuat data.</td></tr>`;
     }
 }
-
 // ======================
-// Helper Functions Initialization
+// 📦 Inisialisasi Data Awal Baris Order
 // ======================
 function initializeExistingRows() {
     const tableBody = document.getElementById('orderTableBody');
@@ -204,7 +197,7 @@ function initializeExistingRows() {
 }
 
 // ======================
-// 🧾 Modul Order
+// ➕ Tambah dan Hapus Baris Order
 // ======================
 document.addEventListener('DOMContentLoaded', () => {
     window.tableBody = document.getElementById('orderTableBody');
@@ -214,10 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeExistingRows();
 
-    // ➕ Tambah baris baru
     btnAdd?.addEventListener('click', addOrderRow);
 
-    // 🗑️ Hapus baris
     tableBody.addEventListener('click', e => {
         if (e.target.classList.contains('btn-delete-row')) {
             const row = e.target.closest('tr');
@@ -255,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnKonfirmasiHapus = document.getElementById('btnKonfirmasiHapusOrder');
     const modalHapusEl = document.getElementById('modalKonfirmasiHapusOrder');
 
-    // ⏎ Intersepsi tombol submit utama
+    // ⏎ Tombol Simpan ditekan
     btnSubmitOrder?.addEventListener('click', function (e) {
         e.preventDefault();
         const modal = new bootstrap.Modal(modalKonfirmasiEl);
@@ -265,8 +256,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // ✅ Submit setelah konfirmasi
     btnKonfirmasiSimpan?.addEventListener('click', async function () {
         const formData = new FormData();
-        const transactionId = form.querySelector('input[name="sales_transaction_id"]').value;
-        formData.append('sales_transaction_id', transactionId);
+        const transactionId = form.querySelector('input[name="purchase_transaction_id"]').value;
+        formData.append('purchase_transaction_id', transactionId);
 
         const rows = form.querySelectorAll('#orderTableBody tr');
         let foundRow = false;
@@ -286,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // 🔴 Kirim ID pesanan yang ingin dihapus
+        // 🗑️ ID pesanan yang dihapus
         rows.forEach(row => {
             if (row.dataset.pendingDelete === 'true') {
                 const orderId = row.querySelector('input[name="order_id[]"]')?.value;
@@ -298,13 +289,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!foundRow && !formData.has('delete_order_id')) {
             toastBody.textContent = 'Form pesanan tidak boleh kosong!';
-            toastEl.classList.remove('text-bg-success');
-            toastEl.classList.add('text-bg-danger');
+            toastEl.classList.replace('text-bg-success', 'text-bg-danger');
             return toast.show();
         }
 
         try {
-            const response = await fetch('/order', {
+            const response = await fetch('/purchases/order', {
                 method: 'POST',
                 headers: { 'Accept': 'application/json' },
                 body: formData
@@ -314,14 +304,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (response.ok) {
                 toastBody.textContent = result.message || 'Data berhasil disimpan.';
-                toastEl.classList.remove('text-bg-danger');
-                toastEl.classList.add('text-bg-success');
+                toastEl.classList.replace('text-bg-danger', 'text-bg-success');
                 toast.show();
 
                 rows.forEach(row => {
                     const itemCode = row.querySelector('select[name="item_code[]"]')?.value;
                     const qty = parseInt(row.querySelector('input[name="quantity[]"]')?.value);
-                    if (!itemCode || itemCode.trim() === '' || isNaN(qty) || qty <= 0) {
+                    if (!itemCode || isNaN(qty) || qty <= 0) {
                         row.remove();
                     }
                 });
@@ -336,20 +325,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 bootstrap.Modal.getInstance(modalKonfirmasiEl)?.hide();
 
                 setTimeout(() => {
-                    window.location.href = `/details/${transactionId}`;
+                    window.location.href = `/purchases/details/${transactionId}`;
                 }, 1000);
             } else {
                 toastBody.textContent = result.error || 'Gagal menyimpan data.';
-                toastEl.classList.remove('text-bg-success');
-                toastEl.classList.add('text-bg-danger');
+                toastEl.classList.replace('text-bg-success', 'text-bg-danger');
                 toast.show();
             }
 
         } catch (err) {
             console.error('Submit error:', err);
             toastBody.textContent = 'Terjadi kesalahan saat menyimpan.';
-            toastEl.classList.remove('text-bg-success');
-            toastEl.classList.add('text-bg-danger');
+            toastEl.classList.replace('text-bg-success', 'text-bg-danger');
             toast.show();
         }
     });
@@ -381,12 +368,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const method = document.getElementById('paymentMethod').value;
 
             const formData = new FormData();
-            formData.append('sales_transaction_id', transactionId);
+            formData.append('purchase_transaction_id', transactionId);
             formData.append('payment_amount', amount);
             formData.append('payment_method', method);
 
             try {
-                const response = await fetch('/payment', {
+                const response = await fetch('/purchases/payment', {
                     method: 'POST',
                     body: formData
                 });
@@ -437,7 +424,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
-// Riwayat Pembayaran
+
+// ======================
+// 📜 Riwayat Pembayaran
+// ======================
 document.addEventListener('DOMContentLoaded', () => {
     const riwayatModal = document.getElementById('modalRiwayatPembayaran');
 
@@ -448,8 +438,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadRiwayatPembayaran(transactionId);
             }
         });
-    }    
+    }
 });
+
+// 🗑️ Hapus Pembayaran
 document.addEventListener('click', async function (e) {
     if (!e.target.classList.contains('btn-hapus-payment')) return;
 
@@ -459,29 +451,25 @@ document.addEventListener('click', async function (e) {
         return;
     }
 
-    console.log('Menghapus pembayaran dengan ID:', id);
-
     const konfirmasi = confirm('Apakah yakin ingin menghapus pembayaran ini?');
     if (!konfirmasi) return;
 
     const transactionId = document.getElementById('paymentTransactionId')?.value;
 
     try {
-        const res = await fetch('/payment/delete', {
+        const res = await fetch('/purchases/payment/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sales_payment_id: id })
+            body: JSON.stringify({ purchase_payment_id: id })
         });
 
         const result = await res.json();
 
         if (res.ok) {
             toastSuccess(result.message || 'Pembayaran berhasil dihapus.');
-        
             if (transactionId) {
-                // ✅ Reload halaman agar total_dibayar & status otomatis update
                 setTimeout(() => {
-                    window.location.href = `/details/${transactionId}`;
+                    window.location.href = `/purchase/details/${transactionId}`;
                 }, 1000);
             }
         } else {
@@ -495,18 +483,18 @@ document.addEventListener('click', async function (e) {
 });
 
 // ======================
-// 🗑️ Modul Batalkan Perubahan Pesanan
+// ❌ Batalkan Perubahan Pesanan
 // ======================
 document.addEventListener('DOMContentLoaded', () => {
     const btnCancel = document.getElementById('btnCloseOrder');
-    const transactionId = document.querySelector('input[name="sales_transaction_id"]')?.value;
+    const transactionId = document.querySelector('input[name="purchase_transaction_id"]')?.value;
 
     if (btnCancel && transactionId) {
         btnCancel.addEventListener('click', (e) => {
             e.preventDefault();
             const confirmCancel = confirm('Yakin ingin membatalkan semua perubahan pesanan?');
             if (confirmCancel) {
-                window.location.href = `/details/${transactionId}`;
+                window.location.href = `/purchases/details/${transactionId}`;
             }
         });
     }

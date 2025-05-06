@@ -1,9 +1,9 @@
-<% if (sales && sales.length> 0) { %>
+<% if (purchases && purchases.length> 0) { %>
     <table class="table table-hover mt-3 mx-auto">
         <thead class="text-center">
             <tr>
                 <th>ID Transaksi</th>
-                <th>Nama Pelanggan</th>
+                <th>Nama Supplier</th>
                 <th>Alamat</th>
                 <th>Total Tagihan</th>
                 <th>Total Bayar</th>
@@ -14,16 +14,16 @@
             </tr>
         </thead>
         <tbody class="text-center">
-            <% sales.forEach(tx=> { %>
+            <% purchases.forEach(tx=> { %>
                 <tr>
                     <td>
                         <%= tx.id %>
                     </td>
                     <td>
-                        <%= tx.nama_pelanggan %>
+                        <%= tx.nama_supplier %>
                     </td>
                     <td>
-                        <%= tx.alamat_pelanggan %>
+                        <%= tx.alamat_supplier %>
                     </td>
                     <td>
                         <%= Number(tx.total_tagihan).toLocaleString('id-ID', { style: 'currency' , currency: 'IDR' }) %>
@@ -46,7 +46,7 @@
                         <%= tx.nama_admin %>
                     </td>
                     <td>
-                        <a href="/details/<%= tx.id %>" class="btn btn-sm btn-primary">Detail</a>
+                        <a href="/purchases/details/<%= tx.id %>" class="btn btn-sm btn-primary">Detail</a>
                     </td>
                 </tr>
                 <% }); %>

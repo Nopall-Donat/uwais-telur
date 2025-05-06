@@ -1,75 +1,131 @@
 const dbPromise = require('../../config/db');
 
 module.exports = {
-    // 1. View semua item
+    // 1. Get all items (stok)
     getAllItems: async () => {
         try {
             const db = await dbPromise;
             return await db.all(`
-                SELECT item_code, item_type, selling_price
-                FROM items
-                ORDER BY item_code ASC
+                SELECT i.*, s.name AS supplier_name
+                FROM items i
+                JOIN suppliers s ON i.supplier_id = s.supplier_id
+                ORDER BY datetime(i.updated_at) DESC
             `);
         } catch (err) {
-            console.error('itemModel.getAllItems error:', err);
-            throw err;
-        }
-    },
-    
-    // 2. Cari item berdasarkan item_code
-    getItemByCode: async (itemCode) => {
-        try {
-            const db = await dbPromise;
-            return await db.get(`
-                SELECT *
-                FROM items
-                WHERE item_code = ?
-            `, [itemCode]);
-        } catch (err) {
-            console.error('itemsModel.getItemByCode error:', err);
+            console.error('itemsModel.getAllItems error:', err);
             throw err;
         }
     },
 
-    // 3. Insert item baru
-    createItem: async (itemCode, itemType, supplierId, stockQuantity, purchasePrice, sellingPrice, unit, updatedAt) => {
+    // 2. Get items by date part in item_code
+    getItemsByDate: async (datePart) => {
+        try {
+            const db = await dbPromise;
+            return await db.all(`
+                SELECT * FROM items
+                WHERE item_code LIKE ?
+            `, [`I${datePart}%`]);
+        } catch (err) {
+            console.error('itemsModel.getItemsByDate error:', err);
+            throw err;
+        }
+    },
+
+    // 3. Get item by ID
+    getByIdItem: async (itemCode) => {
+        try {
+            const db = await dbPromise;
+            return await db.get(`
+                SELECT * FROM items WHERE item_code = ?
+            `, [itemCode]);
+        } catch (err) {
+            console.error('itemsModel.getByIdItem error:', err);
+            throw err;
+        }
+    },
+
+    // 4. Update item
+    updateByIdItem: async (itemCode, item_type, supplier_id, stock_quantity, purchase_price, selling_price, unit, updated_at) => {
+        try {
+            const db = await dbPromise;
+            return await db.run(`
+                UPDATE items
+                SET item_type = ?, supplier_id = ?, stock_quantity = ?, purchase_price = ?, selling_price = ?, unit = ?, updated_at = ?
+                WHERE item_code = ?
+            `, [item_type, supplier_id, stock_quantity, purchase_price, selling_price, unit, updated_at, itemCode]);
+        } catch (err) {
+            console.error('itemsModel.updateByIdItem error:', err);
+            throw err;
+        }
+    },
+
+    // 5. Create item
+    createItem: async (item_code, item_type, supplier_id, stock_quantity, purchase_price, selling_price, unit, updated_at) => {
         try {
             const db = await dbPromise;
             await db.run(`
                 INSERT INTO items (item_code, item_type, supplier_id, stock_quantity, purchase_price, selling_price, unit, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `, [itemCode, itemType, supplierId, stockQuantity, purchasePrice, sellingPrice, unit, updatedAt]);
+            `, [item_code, item_type, supplier_id, stock_quantity, purchase_price, selling_price, unit, updated_at]);
         } catch (err) {
             console.error('itemsModel.createItem error:', err);
             throw err;
         }
     },
 
-    // 4. Update item
-    updateItemByCode: async (itemCode, itemType, supplierId, stockQuantity, purchasePrice, sellingPrice, unit, updatedAt) => {
+    // 6. Delete item
+    deleteItem: async (itemCode) => {
         try {
             const db = await dbPromise;
-            await db.run(`
-                UPDATE items
-                SET item_type = ?, supplier_id = ?, stock_quantity = ?, purchase_price = ?, selling_price = ?, unit = ?, updated_at = ?
-                WHERE item_code = ?
-            `, [itemType, supplierId, stockQuantity, purchasePrice, sellingPrice, unit, updatedAt, itemCode]);
+            return await db.run(`
+                DELETE FROM items WHERE item_code = ?
+            `, [itemCode]);
         } catch (err) {
-            console.error('itemsModel.updateItemByCode error:', err);
+            console.error('itemsModel.deleteItem error:', err);
             throw err;
         }
     },
 
-    // 5. Delete item
-    deleteItemByCode: async (itemCode) => {
+    // 7. Pagination & search
+    getItemsPaginated: async (searchTerm, limit, offset) => {
         try {
             const db = await dbPromise;
-            await db.run(`
-                DELETE FROM items
-                WHERE item_code = ?
-            `, [itemCode]);
+            const keyword = `%${searchTerm}%`;
+            const query = `
+                SELECT i.*, s.name AS supplier_name
+                FROM items i
+                JOIN suppliers s ON i.supplier_id = s.supplier_id
+                WHERE 
+                    item_type LIKE ? OR
+                    item_code LIKE ? OR
+                    s.name LIKE ?
+                ORDER BY updated_at DESC
+                LIMIT ? OFFSET ?
+            `;
+            return await db.all(query, [keyword, keyword, keyword, limit, offset]);
         } catch (err) {
-            console.error('itemsModel.deleteItemByCode error:', err);
+            console.error('itemsModel.getItemsPaginated error:', err);
+            throw err;
+        }
+    },
+
+    countItems: async (searchTerm) => {
+        try {
+            const db = await dbPromise;
+            const keyword = `%${searchTerm}%`;
+            const query = `
+                SELECT COUNT(*) as total
+                FROM items i
+                JOIN suppliers s ON i.supplier_id = s.supplier_id
+                WHERE 
+                    item_type LIKE ? OR
+                    item_code LIKE ? OR
+                    s.name LIKE ?
+            `;
+            const result = await db.get(query, [keyword, keyword, keyword]);
+            return result.total;
+        } catch (err) {
+            console.error('itemsModel.countItems error:', err);
             throw err;
         }
     }

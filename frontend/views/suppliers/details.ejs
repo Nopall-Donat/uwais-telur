@@ -30,50 +30,50 @@
 
                                 <div class="card">
                                     <div class="card-body pt-4">
-                                        <h5 class="card-title">Detail Pelanggan</h5>
+                                        <h5 class="card-title">Detail Pemasok</h5>
 
-                                        <form action="/customers/update/<%= customer.customer_id %>" method="POST"
-                                            id="editCustomerForm" class="row g-3">
+                                        <form action="/suppliers/update/<%= supplier.supplier_id %>" method="POST"
+                                            id="editSupplierForm" class="row g-3">
 
                                             <div class="col-md-6">
-                                                <label for="customer_id" class="form-label">Kode Pelanggan</label>
-                                                <input type="text" id="customer_id" class="form-control"
-                                                    value="<%= customer.customer_id %>" readonly disabled>
+                                                <label for="supplier_id" class="form-label">Kode Pemasok</label>
+                                                <input type="text" id="supplier_id" class="form-control"
+                                                    value="<%= supplier.supplier_id %>" readonly disabled>
                                             </div>
 
                                             <div class="col-md-6">
-                                                <label for="name" class="form-label">Nama Pelanggan</label>
+                                                <label for="name" class="form-label">Nama Pemasok</label>
                                                 <input type="text" id="name" name="name" class="form-control"
-                                                    value="<%= customer.name %>" required>
+                                                    value="<%= supplier.name %>" required>
                                             </div>
 
                                             <div class="col-md-6">
                                                 <label for="phone_number" class="form-label">Nomor Telepon</label>
                                                 <input type="tel" id="phone_number" name="phone_number"
-                                                    class="form-control" value="<%= customer.phone_number %>"
+                                                    class="form-control" value="<%= supplier.phone_number %>"
                                                     pattern="^\d{10,13}$" required>
                                             </div>
 
                                             <div class="col-md-12">
                                                 <label for="address" class="form-label">Alamat</label>
                                                 <textarea id="address" name="address" class="form-control" rows="3"
-                                                    required><%= customer.address %></textarea>
+                                                    required><%= supplier.address %></textarea>
                                             </div>
 
                                             <div class="col-md-6">
-                                                <label for="created_at" class="form-label">Waktu Bergabung</label>
+                                                <label for="created_at" class="form-label">Waktu Terdaftar</label>
                                                 <input type="text" id="created_at" class="form-control"
-                                                    value="<%= customer.created_at %>" readonly disabled>
+                                                    value="<%= supplier.created_at %>" readonly disabled>
                                             </div>
 
                                             <div class="col-md-6">
-                                                <label for="created_at" class="form-label">Waktu Diupdate</label>
-                                                <input type="text" id="created_at" class="form-control"
-                                                    value="<%= customer.updated_at %>" readonly disabled>
+                                                <label for="updated_at" class="form-label">Waktu Diupdate</label>
+                                                <input type="text" id="updated_at" class="form-control"
+                                                    value="<%= supplier.updated_at %>" readonly disabled>
                                             </div>
 
                                             <div class="d-flex justify-content-between mt-4">
-                                                <a href="/customers" class="btn btn-secondary"><i
+                                                <a href="/suppliers" class="btn btn-secondary"><i
                                                         class="bi bi-arrow-left"></i> Kembali</a>
                                                 <button type="submit" class="btn btn-success"><i class="bi bi-save"></i>
                                                     Simpan Perubahan</button>
@@ -87,10 +87,10 @@
 
                 </main><!-- End #main -->
 
-                <script src="/assets/js/customers/detailsScript.js"></script>
+                <script src="/assets/js/suppliers/indexScript.js"></script>
     </body>
-<!-- ======= Footer ======= -->
-<%- include('../layout/footer') %>
 
+    <!-- ======= Footer ======= -->
+    <%- include('../layout/footer') %>
 
 </html>

@@ -191,7 +191,20 @@ module.exports = {
             throw err;
         }
     },
-
+    // Genetate ID baru untuk transaksi penjualan
+    getUsedOrderIdsByDate: async (dateTag) => {
+        try {
+            const db = await dbPromise;
+            const rows = await db.all(`
+                    SELECT sales_order_id FROM sales_orders
+                    WHERE sales_order_id LIKE ?
+                `, [`SORD%${dateTag}`]);
+            return rows;
+        } catch (err) {
+            console.error('salesModel.getUsedOrderIdsByDate error:', err);
+            throw err;
+        }
+    },
     // 🔹 Cek apakah sales_order_id sudah ada
     checkOrderIdExists: async (orderId) => {
         try {
@@ -205,7 +218,6 @@ module.exports = {
             throw err;
         }
     },
-
     // 🔹 Insert satu item order
     insertSingleSalesOrder: async (orderId, transactionId, itemCode, qty, price) => {
         try {
@@ -395,21 +407,6 @@ module.exports = {
         }
     },
 
-    // Genetate ID baru untuk transaksi penjualan
-    getUsedOrderIdsByDate: async (dateTag) => {
-        try {
-            const db = await dbPromise;
-            const rows = await db.all(`
-                SELECT sales_order_id FROM sales_orders
-                WHERE sales_order_id LIKE ?
-            `, [`SORD%${dateTag}`]);
-            return rows;
-        } catch (err) {
-            console.error('salesModel.getUsedOrderIdsByDate error:', err);
-            throw err;
-        }
-    },
-
     // ================================
     // Backup Database
     // ================================
@@ -471,7 +468,7 @@ module.exports = {
     getSalesReceiptData: async (id) => {
         try {
             const db = await dbPromise;
-    
+
             const transaction = await db.get(`
                 SELECT st.*, c.name AS customer_name, c.phone_number, c.address,
                     a.admin_name
@@ -480,26 +477,24 @@ module.exports = {
                 LEFT JOIN admins a ON st.admin_id = a.admin_id
                 WHERE st.sales_transaction_id = ?
             `, [id]);
-    
+
             const orders = await db.all(`
                 SELECT o.*, i.item_type AS item_name, i.unit
                 FROM sales_orders o
                 LEFT JOIN items i ON o.item_code = i.item_code
                 WHERE o.sales_transaction_id = ?
-            `, [id]);            
-    
+            `, [id]);
+
             const payments = await db.all(`
                 SELECT * FROM sales_payments
                 WHERE sales_transaction_id = ?
                 ORDER BY payment_time ASC
             `, [id]);
-    
+
             return { transaction, orders, payments };
         } catch (err) {
             console.error('getSalesReceiptData error:', err);
             throw err;
         }
     },
-    
-
 };

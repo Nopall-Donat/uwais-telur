@@ -1,46 +1,47 @@
-<% if (customers && customers.length> 0) { %>
-    <table class="table table-hover table-responsive mt-3" id="customersTable">
-        <thead class="text-center ">
+<% if (suppliers && suppliers.length> 0) { %>
+    <table class="table table-hover table-responsive mt-3" id="suppliersTable">
+        <thead class="text-center">
             <tr>
-                <th scope="col">ID Pelanggan</th>
-                <th scope="col">Nama Pelanggan</th>
+                <th scope="col">ID Pemasok</th>
+                <th scope="col">Nama Pemasok</th>
                 <th scope="col">Alamat</th>
                 <th scope="col">Nomor Telepon</th>
-                <th scope="col">Tanggal Bergabung</th>
+                <th scope="col">Tanggal Terdaftar</th>
                 <th scope="col">Detail</th>
                 <th scope="col">Hapus</th>
             </tr>
         </thead>
         <tbody class="text-center">
-            <% customers.forEach(customer=> { %>
+            <% suppliers.forEach(supplier=> { %>
                 <tr>
                     <td>
-                        <%= customer.customer_id %>
+                        <%= supplier.supplier_id %>
                     </td>
                     <td>
-                        <%= customer.name %>
+                        <%= supplier.name %>
                     </td>
                     <td>
-                        <%= customer.address %>
+                        <%= supplier.address %>
                     </td>
                     <td>
-                        <%= customer.phone_number %>
+                        <%= supplier.phone_number %>
                     </td>
                     <td>
-                        <%= customer.created_at %>
+                        <%= supplier.created_at %>
                     </td>
                     <td>
-                        <a href="/customers/details/<%= customer.customer_id %>"
+                        <a href="/suppliers/details/<%= supplier.supplier_id %>"
                             class="btn btn-sm btn-primary">Detail</a>
                     </td>
                     <td>
                         <button class="btn btn-delete btn-danger btn-sm"
-                            data-id="<%= customer.customer_id %>">Hapus</button>
+                            data-id="<%= supplier.supplier_id %>">Hapus</button>
                     </td>
                 </tr>
                 <% }) %>
         </tbody>
     </table>
+
     <div class="d-flex justify-content-center mt-4">
         <nav aria-label="Page navigation example">
             <ul class="pagination">
@@ -74,5 +75,5 @@
     </div>
 
     <% } else { %>
-        <p class="text-center mt-4">Tidak ada pelanggan ditemukan.</p>
+        <p class="text-center mt-4">Tidak ada pemasok ditemukan.</p>
         <% } %>
