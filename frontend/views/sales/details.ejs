@@ -22,7 +22,7 @@
                     <!-- Informasi Pelanggan -->
                     <div class="card mb-4">
                         <div class="card-body">
-                            <h5 class="card-title">Informasi Pelanggan</h5>
+                            <h5 class="card-title fw-semibold">Informasi Pelanggan</h5>
 
                             <div class="mb-2 d-flex">
                                 <div class="fw-bold me-2" style="min-width: 120px;">Nama</div>
@@ -48,23 +48,23 @@
                     <!-- Daftar Pesanan -->
                     <div class="card mb-4">
                         <div class="card-body">
-                            <h5 class="card-title">Daftar Pesanan</h5>
+                            <h5 class="card-title fw-semibold">Daftar Pesanan</h5>
 
                             <form action="/order" method="POST" id="orderForm">
                                 <input type="hidden" name="sales_transaction_id" value="<%= detail.id %>">
 
                                 <div class="table-responsive">
                                     <table class="table custom-order-table align-middle">
-                                        <thead class="table-primary">
-                                            <tr>
-                                                <th>ID Order</th>
-                                                <th>Kode Item</th>
-                                                <th>Nama Item</th>
-                                                <th>Jumlah</th>
-                                                <th>Harga Satuan</th>
-                                                <th>Subtotal</th>
-                                                <th>Aksi</th>
-                                            </tr>
+                                        <thead></thead>
+                                        <tr>
+                                            <th>ID Order</th>
+                                            <th>Kode Item</th>
+                                            <th>Nama Item</th>
+                                            <th>Jumlah</th>
+                                            <th>Harga Satuan</th>
+                                            <th>Subtotal</th>
+                                            <th>Aksi</th>
+                                        </tr>
                                         </thead>
                                         <tbody id="orderTableBody">
                                             <% if (orders && orders.length> 0) { %>
@@ -108,8 +108,7 @@
                                                                 class="form-control item-subtotal">
                                                         </td>
                                                         <td>
-                                                            <button type="button"
-                                                                class="btn btn-danger btn-sm btn-delete-row">🗑️</button>
+                                                            <button type="button" class="btn btn-danger btn btn-delete-row bi bi-trash-fill"></button>
                                                         </td>
                                                     </tr>
                                                     <% }) %>
@@ -124,57 +123,101 @@
                                 </div>
 
                                 <div class="d-flex justify-content-between mt-3">
-                                    <button type="button" class="btn btn-primary btn-sm shadow-sm" id="btnTambahOrder">
+                                    <button type="button" class="btn btn-secondary btn shadow-sm" id="btnTambahOrder">
                                         <i class="bi bi-plus-circle me-1"></i> Tambah Item
                                     </button>
-                                    <button type="submit" class="btn btn-success btn-sm shadow-sm" id="btnSubmitOrder">
-                                        <i class="bi bi-check2-circle me-1"></i> Simpan Pesanan
-                                    </button>
+                                    <div>
+                                        <button class="btn btn-danger btn shadow-sm" id="btnCloseOrder" type="button">
+                                            <i class="bi bi-x-circle me-1"></i> Cancel
+                                        </button>
+                                        <button type="submit" class="btn btn-success btn shadow-sm" id="btnSubmitOrder">
+                                            <i class="bi bi-check2-circle me-1"></i> Simpan Pesanan
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
                     </div>
 
-
-                    <!-- Informasi Transaksi -->
-                    <div class="card mb-4">
+                    <!-- 🔍 Informasi Transaksi - Final UI Upgrade -->
+                    <div class="card border-0 shadow-sm mb-4">
                         <div class="card-body">
-                            <h5 class="card-title">Informasi Transaksi</h5>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">Admin</label>
-                                    <div class="form-control-plaintext">
-                                        <%= detail.admin_name %>
+                            <h5 class="card-title fw-semibold mb-4">Informasi Transaksi</h5>
+
+                            <div class="row align-items-start">
+
+                                <!-- 📌 Kiri -->
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Admin</label>
+                                        <div class="text-muted">
+                                            <%= detail.admin_name %>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">Waktu Transaksi</label>
-                                    <div class="form-control-plaintext">
-                                        <%= detail.transaction_time %>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">Status Pembayaran</label>
                                     <div>
-                                        <% if (detail.status_pembayaran==='completed' ) { %>
+                                        <label class="form-label fw-semibold">Waktu Transaksi</label>
+                                        <div class="text-muted">
+                                            <%= detail.transaction_time %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 💰 Tengah -->
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Total Tagihan</label>
+                                        <div class="text-danger fw-semibold fs-6" id="totalAmount">
+                                            Rp <%= Number(detail.total_tagihan || 0).toLocaleString('id-ID') %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 text-end d-flex flex-column align-items-end justify-content-between h-100">
+                                    <label class="form-label fw-semibold">Total Dibayar</label>
+                                    <div class="text-success fw-semibold fs-6 mb-3">
+                                        Rp <%= Number(detail.total_dibayar || 0).toLocaleString('id-ID') %>
+                                    </div>
+
+                                    <label class="form-label ">
+                                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
+                                            data-bs-target="#modalRiwayatPembayaran" title="Lihat Riwayat">
+                                            <i class="bi bi-clock-history me-1"></i> Lihat Riwayat 
+                                            
+                                        </button>
+                                    </label>
+                                </div>
+
+                                <!-- ✅ Kanan -->
+                                <div
+                                    class="col-md-3 text-end d-flex flex-column align-items-end justify-content-between h-100">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Status Pembayaran</label><br>
+                                        <% if (detail.status_pembayaran==='Lunas' ) { %>
                                             <span class="badge bg-success">Lunas</span>
                                             <% } else { %>
                                                 <span class="badge bg-warning text-dark">Belum Lunas</span>
                                                 <% } %>
                                     </div>
+                                    <button class="btn btn-primary mt-auto" data-bs-toggle="modal"
+                                        data-bs-target="#modalPembayaran">
+                                        Bayar Pesanan
+                                    </button>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold">Total Tagihan</label>
-                                    <div class="form-control-plaintext text-danger fw-semibold">
-                                        Rp <span id="totalAmount">
-                                            <%= Number(detail.total_tagihan).toLocaleString('id-ID', { style: 'currency'
-                                                , currency: 'IDR' }).replace("Rp", "" ).trim() %>
-                                        </span>
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
                     </div>
+
+                    <div class="d-flex justify-content-end gap-2 mb-3">
+                        <a href="/nota/<%= detail.id %>" target="_blank" class="btn btn-outline-dark">
+                            <i class="bi bi-printer"></i> Cetak Nota
+                        </a>
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal"
+                            data-bs-target="#modalHapusTransaksi">
+                            <i class="bi bi-trash3"></i> Hapus Transaksi
+                        </button>
+                    </div>
+
 
                     <!-- alert -->
                     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
@@ -205,8 +248,10 @@
                                 </div>
                                 <div class="modal-footer justify-content-center">
                                     <!-- Modal Konfirmasi Hapus -->
-                                    <button type="button" class="btn btn-secondary" id="btnBatalHapusOrder" data-bs-dismiss="modal">Batal</button>
-                                    <button type="button" class="btn btn-danger" id="btnKonfirmasiHapusOrder" data-bs-dismiss="modal">Ya, Hapus</button>
+                                    <button type="button" class="btn btn-secondary" id="btnBatalHapusOrder"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-danger" id="btnKonfirmasiHapusOrder"
+                                        data-bs-dismiss="modal">Ya, Hapus</button>
                                 </div>
                             </div>
                         </div>
@@ -235,7 +280,156 @@
                         </div>
                     </div>
 
+                    <!-- 🧾 Modal Pembayaran -->
+                    <div class="modal fade" id="modalPembayaran" tabindex="-1" aria-labelledby="modalPembayaranLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content rounded-3 shadow-sm">
+                                <form id="paymentForm">
+                                    <!-- Header -->
+                                    <div class="modal-header border-bottom-0 pb-0">
+                                        <div>
+                                            <h5 class="modal-title fw-semibold" id="modalPembayaranLabel">Pembayaran
+                                                Transaksi</h5>
+                                            <div class="text-muted">ID Transaksi: <strong>
+                                                    <%= detail.id %>
+                                                </strong> — <%= detail.customer_name %>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Tutup"></button>
+                                    </div>
+
+                                    <!-- Body -->
+                                    <div class="modal-body pt-3">
+                                        <!-- Total Tagihan -->
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Total Tagihan</label>
+                                            <div>Rp <%= Number(detail.total_tagihan).toLocaleString('id-ID') %>
+                                            </div>
+                                        </div>
+
+                                        <!-- Sudah Dibayar -->
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Total Sudah Dibayar</label>
+                                            <div id="alreadyPaidDisplay" class="text-success">Rp <%=
+                                                    Number(detail.total_dibayar || 0).toLocaleString('id-ID') %>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tambahan Pembayaran -->
+                                        <div class="mb-3">
+                                            <label for="paymentAmount" class="form-label fw-bold">Tambah
+                                                Pembayaran</label>
+                                            <input type="number" class="form-control" id="paymentAmount"
+                                                placeholder="Contoh: 50000" min="0">
+                                        </div>
+
+                                        <!-- Metode Pembayaran -->
+                                        <div class="mb-3">
+                                            <label for="paymentMethod" class="form-label fw-bold">Metode
+                                                Pembayaran</label>
+                                            <select class="form-select" id="paymentMethod">
+                                                <option value="Tunai">Tunai</option>
+                                                <option value="Transfer">Transfer</option>
+                                                <option value="Tunai + Transfer">Tunai + Transfer</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Kembalian -->
+                                        <div class="mt-4 pt-3 border-top">
+                                            <label class="form-label fw-bold">Kembalian</label>
+                                            <div id="paymentChange" class="text-danger">Rp 0</div>
+                                        </div>
+
+                                        <!-- Hidden Input & Meta -->
+                                        <input type="hidden" id="paymentTransactionId" value="<%= detail.id %>">
+                                        <div id="payment-meta" data-total-tagihan="<%= detail.total_tagihan %>"
+                                            data-total-dibayar="<%= detail.total_dibayar %>"></div>
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <div class="modal-footer border-top-0">
+                                        <button type="submit" class="btn btn-success">Simpan Pembayaran</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 💳 Modal Riwayat Pembayaran -->
+                    <div class="modal fade" id="modalRiwayatPembayaran" tabindex="-1"
+                        aria-labelledby="modalRiwayatLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content shadow-sm rounded-3">
+                                <div class="modal-header">
+                                    <h5 class="modal-title fw-semibold" id="modalRiwayatLabel">Riwayat Pembayaran</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Tutup"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Waktu Pembayaran</th>
+                                                    <th>Jumlah</th>
+                                                    <th>Metode</th>
+                                                    <th>Hapus</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="riwayatPembayaranBody">
+                                                <tr>
+                                                    <td colspan="4" class="text-center text-muted">Memuat data...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Hapus Transaksi -->
+                    <div class="modal fade" id="modalHapusTransaksi" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <form action="/delete/<%= detail.id %>">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title">Hapus Transaksi</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Apakah Anda yakin ingin menghapus transaksi ini beserta semua pesanan dan
+                                        pembayaran terkait?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-danger">Hapus</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+
+                    <!-- 🔔 TOAST NOTIFIKASI -->
+                    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999">
+                        <div id="mainToast" class="toast align-items-center text-bg-success border-0" role="alert"
+                            aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body" id="mainToastBody">Berhasil</div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                    data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+
+
                 </main>
+
 
                 <script id="saved-orders" type="application/json">
                     <%- JSON.stringify(orders.map(o => o.sales_order_id)) %>

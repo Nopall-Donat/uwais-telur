@@ -42,6 +42,10 @@
                                                 </select>
                                             </div>
                                             <div>
+                                                <button class="btn btn-outline-primary me-2" id="btnExportExcel"
+                                                    data-bs-toggle="tooltip" title="Export ke Excel">
+                                                    <i class="bi bi-file-earmark-excel"></i>
+                                                </button>
                                                 <button class="btn btn-primary" data-bs-toggle="modal"
                                                     data-bs-target="#modalPilihPelanggan">
                                                     <i class="bi bi-plus-lg"></i> Tambah Transaksi
@@ -50,7 +54,6 @@
                                         </div>
 
                                         <!-- 🔷 Modal Pilih Pelanggan -->
-                                        <!-- Modal -->
                                         <div class="modal fade" id="modalPilihPelanggan" tabindex="-1"
                                             data-bs-backdrop="static" data-bs-keyboard="false">
                                             <div class="modal-dialog modal-md modal-dialog-centered">
@@ -60,7 +63,7 @@
                                                         <button type="button" class="btn-close"
                                                             data-bs-dismiss="modal"></button>
                                                     </div>
-                                                    <form action="/sales/add" method="post">
+                                                    <form action="/add" method="post">
                                                         <div class="modal-body">
                                                             <div
                                                                 class="mb-3 d-flex justify-content-between align-items-center">
@@ -68,8 +71,7 @@
                                                                     Pelanggan</label>
                                                                 <button type="button"
                                                                     class="btn btn-sm btn-outline-primary"
-                                                                    id="btnTambahPelanggan"
-                                                                    data-bs-toggle="tooltip"
+                                                                    id="btnTambahPelanggan" data-bs-toggle="tooltip"
                                                                     title="Tambah pelanggan jika belum terdaftar">
                                                                     <i class="bi bi-plus-lg"></i>
                                                                 </button>
@@ -148,8 +150,11 @@
 
                                         <!-- Alert -->
                                         <% if (message) { %>
-                                            <div class="alert alert-<%= message.type %> mt-3" role="alert">
+                                            <div class="alert alert-<%= message.type %> alert-dismissible fade show mt-3"
+                                                role="alert">
                                                 <%= message.text %>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                        aria-label="Close"></button>
                                             </div>
                                             <% } %>
 
@@ -167,6 +172,6 @@
 
                 <script src="/assets/js/salesScript/salesScript.js"></script>
     </body>
-<%- include('../layout/footer') %>
+    <%- include('../layout/footer') %>
 
 </html>

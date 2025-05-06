@@ -1,7 +1,11 @@
 const dbPromise = require('../../config/db');
 
 module.exports = {
-    // 1. Ambil semua transaksi dengan search + pagination
+    // ================================
+    // TRANSAKSI PENJUALAN
+    // ================================
+
+    // Ambil semua transaksi dengan search + pagination
     getSalesBySearchAndLimit: async (search, limit, offset = 0) => {
         try {
             const db = await dbPromise;
@@ -52,8 +56,7 @@ module.exports = {
             throw err;
         }
     },
-
-    // 2. Hitung total data transaksi untuk pagination
+    // Hitung total data transaksi untuk pagination
     countSalesBySearch: async (search) => {
         try {
             const db = await dbPromise;
@@ -83,6 +86,48 @@ module.exports = {
             throw err;
         }
     },
+    getTransactionIdsByDateTag: async (dateTag) => {
+        try {
+            const db = await dbPromise;
+            const rows = await db.all(`
+            SELECT sales_transaction_id FROM sales_transactions
+            WHERE sales_transaction_id LIKE ?
+        `, [`SELL%${dateTag}`]);
+            return rows;
+        } catch (err) {
+            console.error('getTransactionIdsByDateTag error:', err);
+            throw err;
+        }
+    },
+    createSalesTransaction: async (transactionId, adminId, customerId, timestamp) => {
+        try {
+            const db = await dbPromise;
+            await db.run(`
+            INSERT INTO sales_transactions (
+                sales_transaction_id, admin_id, customer_id,
+                total_amount, status, transaction_time
+            ) VALUES (?, ?, ?, 0, 'Belum Lunas', ?)
+        `, [transactionId, adminId, customerId, timestamp]);
+        } catch (err) {
+            console.error('createSalesTransaction error:', err);
+            throw err;
+        }
+    },
+    deleteSalesById: async (transactionId) => {
+        try {
+            const db = await dbPromise;
+            await db.run(`DELETE FROM sales_payments WHERE sales_transaction_id = ?`, [transactionId]);
+            await db.run(`DELETE FROM sales_orders WHERE sales_transaction_id = ?`, [transactionId]);
+            await db.run(`DELETE FROM sales_transactions WHERE sales_transaction_id = ?`, [transactionId]);
+        } catch (err) {
+            console.error('salesModel.deleteSalesById error:', err);
+            throw err;
+        }
+    },
+
+    // ================================
+    // DETAIL PESANAN TRANSAKSI
+    // ================================
 
     // 3. Ambil detail transaksi (header + order + payment)
     getSalesTransactionDetail: async (transactionId) => {
@@ -130,6 +175,15 @@ module.exports = {
                 FROM sales_payments sp
                 WHERE sp.sales_transaction_id = ?
             `, [transactionId]);
+
+            // 🔹 Tambahkan total dibayar ke header
+            const totalDibayarResult = await db.get(`
+                SELECT COALESCE(SUM(payment_amount), 0) AS total_dibayar
+                FROM sales_payments
+                WHERE sales_transaction_id = ?
+            `, [transactionId]);
+
+            header.total_dibayar = totalDibayarResult.total_dibayar || 0;
 
             return { header, orders, payments };
         } catch (err) {
@@ -191,9 +245,9 @@ module.exports = {
                 FROM sales_orders
                 WHERE sales_transaction_id = ?
             `, [transactionId]);
-    
+
             const totalAmount = result.total || 0;
-    
+
             await db.run(`
                 UPDATE sales_transactions
                 SET total_amount = ?
@@ -203,7 +257,7 @@ module.exports = {
             console.error('salesModel.updateTotalAmountByTransactionId error:', err);
             throw err;
         }
-    },    
+    },
 
     // Update item order berdasarkan ID
     updateSalesOrder: async (orderId, itemCode, qty, price) => {
@@ -232,94 +286,220 @@ module.exports = {
         }
     },
 
-    // Belum terpakai ->
+    // ================================
+    // PAYMENT
+    // ================================
 
-    // 4. Buat transaksi baru (HEADER)
-    createSalesTransaction: async (transactionId, adminId, customerId) => {
+    getPaymentsByTransactionId: async (transactionId) => {
+        const db = await dbPromise;
+        const query = `
+            SELECT 
+                sales_payment_id, -- ✅ Tambahkan ini!
+                payment_amount, 
+                payment_method, 
+                payment_time 
+            FROM sales_payments 
+            WHERE sales_transaction_id = ?
+            ORDER BY payment_time DESC
+        `;
+        const result = await db.all(query, [transactionId]);
+        return result;
+    },
+
+    // 🔎 Ambil data pembayaran berdasarkan ID
+    getPaymentById: async (paymentId) => {
         try {
             const db = await dbPromise;
-            await db.run(`
-                INSERT INTO sales_transactions (sales_transaction_id, admin_id, customer_id, total_amount, status, transaction_time)
-                VALUES (?, ?, ?, 0, 'Belum Lunas', CURRENT_TIMESTAMP)
-            `, [transactionId, adminId, customerId]);
-            return transactionId;
+            const result = await db.get(`
+            SELECT sales_transaction_id, payment_amount
+            FROM sales_payments
+            WHERE sales_payment_id = ?
+        `, [paymentId]);
+            return result;
         } catch (err) {
-            console.error('salesModel.createSalesTransaction error:', err);
+            console.error('salesModel.getPaymentById error:', err);
             throw err;
         }
     },
 
-    // 5. Tambah ORDER ke transaksi
-    insertSalesOrder: async (orderId, transactionId, itemCode, quantity, unitPrice) => {
+
+    // 🔹 Hitung total pembayaran berdasarkan transaksi
+    getTotalPaidByTransaction: async (transactionId) => {
         try {
             const db = await dbPromise;
-            const subtotal = quantity * unitPrice;
-            await db.run(`
-                INSERT INTO sales_orders (sales_order_id, sales_transaction_id, item_code, quantity, unit_price, subtotal_price, order_time)
-                VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            `, [orderId, transactionId, itemCode, quantity, unitPrice, subtotal]);
-            return orderId;
+            const result = await db.get(`
+            SELECT COALESCE(SUM(payment_amount), 0) AS total_paid
+            FROM sales_payments
+            WHERE sales_transaction_id = ?
+        `, [transactionId]);
+            return result.total_paid || 0;
         } catch (err) {
-            console.error('salesModel.insertSalesOrder error:', err);
+            console.error('salesModel.getTotalPaidByTransaction error:', err);
             throw err;
         }
     },
 
-    // 6. Tambah pembayaran ke transaksi
+    // 🔹 Tambah pembayaran baru
     insertSalesPayment: async (paymentId, transactionId, amount, method) => {
         try {
             const db = await dbPromise;
             await db.run(`
-                INSERT INTO sales_payments (sales_payment_id, sales_transaction_id, payment_amount, payment_method, payment_time)
-                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                INSERT INTO sales_payments (
+                    sales_payment_id, sales_transaction_id,
+                    payment_amount, payment_method,
+                    payment_time
+                ) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
             `, [paymentId, transactionId, amount, method]);
-            return paymentId;
         } catch (err) {
             console.error('salesModel.insertSalesPayment error:', err);
             throw err;
         }
     },
 
-    // 7. Update transaksi setelah total dan status diketahui
-    updateSalesById: async (transactionId, totalAmount, status) => {
+    // 🔹 Update status pembayaran pada transaksi
+    updatePaymentStatus: async (transactionId) => {
         try {
             const db = await dbPromise;
+
+            const result = await db.get(`
+                SELECT
+                    COALESCE(SUM(payment_amount), 0) AS total_dibayar,
+                    (SELECT total_amount FROM sales_transactions WHERE sales_transaction_id = ?) AS total_tagihan
+                FROM sales_payments
+                WHERE sales_transaction_id = ?
+            `, [transactionId, transactionId]);
+
+            const status = result.total_dibayar >= result.total_tagihan ? 'Lunas' : 'Belum Lunas';
+
             await db.run(`
                 UPDATE sales_transactions
-                SET total_amount = ?, status = ?
+                SET status = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE sales_transaction_id = ?
-            `, [totalAmount, status, transactionId]);
+            `, [status, transactionId]);
+
         } catch (err) {
-            console.error('salesModel.updateSalesById error:', err);
+            console.error('updatePaymentStatus error:', err);
             throw err;
         }
     },
 
-    // 8. Hapus seluruh transaksi (termasuk order dan payment)
-    deleteSalesById: async (transactionId) => {
+    // 🔻 Delete pembayaran by ID
+    deletePaymentById: async (paymentId) => {
         try {
             const db = await dbPromise;
-            await db.run(`DELETE FROM sales_payments WHERE sales_transaction_id = ?`, [transactionId]);
-            await db.run(`DELETE FROM sales_orders WHERE sales_transaction_id = ?`, [transactionId]);
-            await db.run(`DELETE FROM sales_transactions WHERE sales_transaction_id = ?`, [transactionId]);
+            const result = await db.run(`DELETE FROM sales_payments WHERE sales_payment_id = ?`, [paymentId]);
+            return result; // result.changes akan bernilai 1 jika sukses
         } catch (err) {
-            console.error('salesModel.deleteSalesById error:', err);
+            console.error('salesModel.deletePaymentById error:', err);
             throw err;
         }
     },
 
-    // 9. Generate ID baru untuk transaksi
+    // Genetate ID baru untuk transaksi penjualan
     getUsedOrderIdsByDate: async (dateTag) => {
         try {
             const db = await dbPromise;
             const rows = await db.all(`
-            SELECT sales_order_id FROM sales_orders
-            WHERE sales_order_id LIKE ?
-        `, [`SORD%${dateTag}`]);
+                SELECT sales_order_id FROM sales_orders
+                WHERE sales_order_id LIKE ?
+            `, [`SORD%${dateTag}`]);
             return rows;
         } catch (err) {
             console.error('salesModel.getUsedOrderIdsByDate error:', err);
             throw err;
         }
     },
+
+    // ================================
+    // Backup Database
+    // ================================
+    getBackupData: async () => {
+        try {
+            const db = await dbPromise;
+
+            const transactions = await db.all(`
+                SELECT 
+                    st.sales_transaction_id,
+                    c.name AS customer_name,
+                    c.address,
+                    st.total_amount,
+                    st.status,
+                    st.transaction_time,
+                    a.admin_name
+                FROM sales_transactions st
+                LEFT JOIN customers c ON st.customer_id = c.customer_id
+                LEFT JOIN admins a ON st.admin_id = a.admin_id
+                ORDER BY st.transaction_time DESC
+            `);
+
+            const orders = await db.all(`
+                SELECT 
+                    o.sales_order_id,
+                    o.sales_transaction_id,
+                    i.item_type,
+                    o.quantity,
+                    o.unit_price,
+                    o.subtotal_price,
+                    o.order_time
+                FROM sales_orders o
+                LEFT JOIN items i ON o.item_code = i.item_code
+                ORDER BY o.order_time ASC
+            `);
+
+            const payments = await db.all(`
+                SELECT 
+                    sp.sales_payment_id,
+                    sp.sales_transaction_id,
+                    sp.payment_amount,
+                    sp.payment_method,
+                    sp.payment_time
+                FROM sales_payments sp
+                ORDER BY sp.payment_time ASC
+            `);
+
+            return { transactions, orders, payments };
+
+        } catch (err) {
+            console.error('getBackupData error:', err);
+            throw err;
+        }
+    },
+
+    // ================================
+    // Cetak Nota
+    // ================================
+    getSalesReceiptData: async (id) => {
+        try {
+            const db = await dbPromise;
+    
+            const transaction = await db.get(`
+                SELECT st.*, c.name AS customer_name, c.phone_number, c.address,
+                    a.admin_name
+                FROM sales_transactions st
+                LEFT JOIN customers c ON st.customer_id = c.customer_id
+                LEFT JOIN admins a ON st.admin_id = a.admin_id
+                WHERE st.sales_transaction_id = ?
+            `, [id]);
+    
+            const orders = await db.all(`
+                SELECT o.*, i.item_type AS item_name, i.unit
+                FROM sales_orders o
+                LEFT JOIN items i ON o.item_code = i.item_code
+                WHERE o.sales_transaction_id = ?
+            `, [id]);            
+    
+            const payments = await db.all(`
+                SELECT * FROM sales_payments
+                WHERE sales_transaction_id = ?
+                ORDER BY payment_time ASC
+            `, [id]);
+    
+            return { transaction, orders, payments };
+        } catch (err) {
+            console.error('getSalesReceiptData error:', err);
+            throw err;
+        }
+    },
+    
+
 };

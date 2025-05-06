@@ -12,10 +12,8 @@ const upload = multer(); // Gunakan upload.none() untuk form tanpa file
 
 // Halaman utama (index penjualan)
 router.get('/', salesController.viewIndexSales);
-
 // Data dengan filter (AJAX)
 router.get('/data', salesController.listSales);
-
 // API semua data
 router.get('/api', salesController.getAllSales);
 
@@ -25,14 +23,9 @@ router.get('/api', salesController.getAllSales);
 
 // Tambah transaksi baru
 router.post('/add', salesController.createSales);
-
 // Detail transaksi
 router.get('/details/:id', salesController.viewSalesDetail);
-
-// Update transaksi
-router.post('/update/:id', salesController.updateSales);
-
-// Hapus transaksi
+// Delete Transaksi
 router.get('/delete/:id', salesController.deleteSales);
 
 // ------------------------
@@ -47,6 +40,8 @@ router.post('/order', upload.none(), salesController.addOrderToSales);
 // ------------------------
 
 router.post('/payment', upload.none(), salesController.addPaymentToSales);
+router.post('/payment/delete', salesController.deleteSalesPayment);
+router.get('/payments/:id', salesController.getSalesPaymentHistory);
 
 // ------------------------
 // 🔧 UTILITAS
@@ -54,5 +49,9 @@ router.post('/payment', upload.none(), salesController.addPaymentToSales);
 
 // Generate ID Order baru
 router.get('/generate/order-id', salesController.generateNewOrderId);
+// Backup database
+router.get('/backup', salesController.backupSalesToExcel);
+// Cetak Nota Penjualan
+router.get('/nota/:id', salesController.viewSalesReceipt);
 
 module.exports = router;

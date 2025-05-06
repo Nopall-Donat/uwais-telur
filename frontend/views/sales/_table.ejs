@@ -11,7 +11,6 @@
                 <th>Waktu</th>
                 <th>Admin</th>
                 <th>Detail</th>
-                <th>Hapus</th>
             </tr>
         </thead>
         <tbody class="text-center">
@@ -42,8 +41,9 @@
                     <td>
                         <%= tx.nama_admin %>
                     </td>
-                    <td><a href="/details/<%= tx.id %>" class="btn btn-sm btn-primary">Detail</a></td>
-                    <td><button class="btn btn-sm btn-danger btn-delete" data-id="<%= tx.id %>">Hapus</button></td>
+                    <td>
+                        <a href="/details/<%= tx.id %>" class="btn btn-sm btn-primary">Detail</a>
+                    </td>
                 </tr>
                 <% }); %>
         </tbody>
