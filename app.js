@@ -6,11 +6,19 @@ const config = require('./config/config');
 const flash = require('connect-flash');
 const session = require('express-session');
 
-// Routes API
+const app = express();
+const PORT = config.port;
+
+// ================================
+// 🔧 Middleware Kustom & Umum
+// ================================
 const loggerMiddleware = require('./backend/middleware/loggerMiddleware');
 const errorMiddleware = require('./backend/middleware/errorMiddleware');
 
-// Import route
+// ================================
+// 🔁 Routes Import
+// ================================
+const authRoutes = require('./backend/routes/auth');
 const salesRoutes = require('./backend/routes/sales');
 const purchasesRoutes = require('./backend/routes/purchases');
 const itemsRoutes = require('./backend/routes/items');
@@ -18,13 +26,13 @@ const customersRoutes = require('./backend/routes/customers');
 const suppliersRoutes = require('./backend/routes/suppliers');
 const adminsRoutes = require('./backend/routes/admins');
 
-const app = express();
-const PORT = config.port;
-
-// Static files middleware dengan custom 404
+// ================================
+// 🔐 Middleware Global
+// ================================
 app.use(loggerMiddleware);
+
 app.get('/.well-known/*', (req, res) => {
-    res.status(204).send(); // Tidak ada konten, respons sukses
+    res.status(204).send(); // Sukses tanpa konten
 });
 
 app.use(helmet({
@@ -38,10 +46,11 @@ app.use(helmet({
         },
     },
 }));
+
 app.use(morgan('dev'));
-app.use(flash()); // Middleware untuk flash messages
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(flash());
 
 app.use(session({
     secret: config.session.secret,
@@ -49,8 +58,19 @@ app.use(session({
     saveUninitialized: config.session.saveUninitialized
 }));
 
+// Inject data session ke view
+app.use((req, res, next) => {
+    res.locals.messages = req.flash();
+    res.locals.admin_id = req.session.admin_id;
+    res.locals.admin_name = req.session.admin_name;
+    next();
+});
+
+// ================================
+// 🌐 Static File Handling
+// ================================
 app.use('/assets', express.static(path.join(__dirname, 'frontend', 'assets'), {
-    fallthrough: false // Akan mengembalikan 404 jika file tidak ditemukan
+    fallthrough: false
 }), (err, req, res, next) => {
     if (err.status === 404) {
         console.log(`Asset tidak ditemukan: ${req.path}`);
@@ -59,11 +79,16 @@ app.use('/assets', express.static(path.join(__dirname, 'frontend', 'assets'), {
     next(err);
 });
 
-// Set view engine dan folder views untuk EJS
+// ================================
+// 🎨 View Engine
+// ================================
 app.set('views', path.join(__dirname, 'frontend', 'views'));
 app.set('view engine', 'ejs');
 
-// Routes
+// ================================
+// 🚀 Routing
+// ================================
+app.use('/', authRoutes); // Login/logout duluan
 app.use('/', salesRoutes);
 app.use('/customers', customersRoutes);
 app.use('/purchases', purchasesRoutes);
@@ -71,22 +96,20 @@ app.use('/suppliers', suppliersRoutes);
 app.use('/items', itemsRoutes);
 app.use('/admins', adminsRoutes);
 
-// Middleware untuk menangani halaman yang tidak ditemukan (404)
+// ================================
+// ❌ Error Handling
+// ================================
+app.use(errorMiddleware);
+
 app.use((req, res, next) => {
     const error = new Error('Halaman tidak ditemukan');
     error.status = 404;
-    next(error); // Kirim error ke errorMiddleware
+    next(error);
 });
 
-app.use((req, res, next) => {
-    res.locals.messages = req.flash();
-    next();
-});
-
-// Middleware error handling
-app.use(errorMiddleware);
-
-// Server
+// ================================
+// ✅ Start Server
+// ================================
 app.listen(PORT, () => {
     console.log(`Server berjalan di mode ${config.env}`);
     console.log(`http://localhost:${PORT}`);

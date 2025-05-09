@@ -144,6 +144,10 @@ const salesController = {
     deleteSales: async (req, res, next) => {
         try {
             const { id } = req.params;
+            const orders = await salesModel.getOrdersByTransaction(id);
+            for (const order of orders) {
+                await itemsModel.updateStockIncrease(order.item_code, order.quantity); // rollback = tambah stok
+            }
             await salesModel.deleteSalesById(id);
 
             req.session.message = { type: 'success', text: 'Transaksi berhasil dihapus.' };
@@ -231,8 +235,10 @@ const salesController = {
             // 🔴 Hapus item yang ditandai
             for (const id of deleteIds) {
                 if (existingIds.has(id)) {
+                    const old = await salesModel.getOrderById(id);
+                    await itemsModel.updateStockIncrease(old.item_code, old.quantity); // rollback stok
                     await salesModel.deleteSalesOrderById(id);
-                    existingIds.delete(id); // Hindari update
+                    existingIds.delete(id);
                 }
             }
 
@@ -251,9 +257,20 @@ const salesController = {
                 formIds.add(id);
 
                 if (existingIds.has(id)) {
+                    const old = await salesModel.getOrderById(id);
+
                     await salesModel.updateSalesOrder(id, item, qty, price);
+
+                    if (old.item_code !== item) {
+                        await itemsModel.updateStockIncrease(old.item_code, old.quantity);
+                        await itemsModel.updateStockDecrease(item, qty);
+                    } else {
+                        const delta = qty - old.quantity;
+                        if (delta !== 0) await itemsModel.updateStockDecrease(item, delta);
+                    }
                 } else {
                     await salesModel.insertSingleSalesOrder(id, transactionId, item, qty, price);
+                    await itemsModel.updateStockDecrease(item, qty);
                 }
 
                 updatedCount++;
@@ -263,23 +280,22 @@ const salesController = {
                 return res.status(400).json({ error: 'Tidak ada data valid untuk disimpan.' });
             }
 
-            // 🔄 Update total tagihan
             await salesModel.updateTotalAmountByTransactionId(transactionId);
 
-            // ✅ CEK STATUS PEMBAYARAN TERBARU
             const detail = await salesModel.getSalesTransactionDetail(transactionId);
             const totalPaid = detail.header.total_dibayar || 0;
             const totalTagihan = detail.header.total_tagihan || 0;
             const status = totalPaid >= totalTagihan ? 'Lunas' : 'Belum Lunas';
-
             await salesModel.updatePaymentStatus(transactionId, status);
 
             res.status(200).json({ message: 'Pesanan berhasil diperbarui.' });
+
         } catch (err) {
             console.error('addOrderToSales error:', err);
             res.status(500).json({ error: 'Gagal menyimpan pesanan.' });
         }
     },
+
 
     // =========================
     // 💵 PEMBAYARAN
@@ -379,9 +395,9 @@ const salesController = {
     backupSalesToExcel: async (req, res) => {
         try {
             const { transactions, orders, payments } = await salesModel.getBackupData();
-    
+
             const workbook = new ExcelJS.Workbook();
-    
+
             // 🟦 Sheet 1: Transaksi
             const sheet1 = workbook.addWorksheet('Data Transaksi');
             sheet1.columns = [
@@ -394,7 +410,7 @@ const salesController = {
                 { header: 'Admin', key: 'admin_name', width: 20 }
             ];
             transactions.forEach(row => sheet1.addRow(row));
-    
+
             // 🟧 Sheet 2: Detail Order
             const sheet2 = workbook.addWorksheet('Rincian Pesanan');
             sheet2.columns = [
@@ -407,7 +423,7 @@ const salesController = {
                 { header: 'Waktu Pesan', key: 'order_time', width: 20 }
             ];
             orders.forEach(row => sheet2.addRow(row));
-    
+
             // 🟩 Sheet 3: Riwayat Pembayaran
             const sheet3 = workbook.addWorksheet('Pembayaran');
             sheet3.columns = [
@@ -418,18 +434,18 @@ const salesController = {
                 { header: 'Waktu Pembayaran', key: 'payment_time', width: 20 }
             ];
             payments.forEach(row => sheet3.addRow(row));
-    
+
             // Output
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename=backup_penjualan.xlsx');
             await workbook.xlsx.write(res);
             res.end();
-    
+
         } catch (err) {
             console.error('backupSalesToExcel error:', err);
             res.status(500).send('Gagal membuat file Excel');
         }
-    },    
+    },
 
     // =========================
     // Cetak Nota Penjualan
@@ -438,23 +454,23 @@ const salesController = {
         try {
             const { id } = req.params;
             const { transaction, orders, payments } = await salesModel.getSalesReceiptData(id);
-    
+
             if (!transaction) {
                 return res.status(404).send('Transaksi tidak ditemukan');
             }
-    
+
             res.render('sales/nota', {
                 transaction,
                 orders,
                 payments
             });
-    
+
         } catch (err) {
             console.error('viewSalesReceipt error:', err);
             res.status(500).send('Gagal menampilkan nota');
         }
     }
-    
+
 };
 
 module.exports = salesController;

@@ -137,6 +137,10 @@ const purchasesController = {
     deletePurchase: async (req, res, next) => {
         try {
             const { id } = req.params;
+            const orders = await purchasesModel.getOrdersByTransaction(id);
+            for (const order of orders) {
+                await itemsModel.updateStockDecrease(order.item_code, order.quantity * -1); // rollback = tambah stok
+            }
             await purchasesModel.deletePurchaseById(id);
 
             req.session.message = { type: 'success', text: 'Transaksi berhasil dihapus.' };
@@ -224,8 +228,10 @@ const purchasesController = {
             // 🔴 Hapus item yang ditandai
             for (const id of deleteIds) {
                 if (existingIds.has(id)) {
+                    const old = await purchasesModel.getOrderById(id);
+                    await itemsModel.updateStockDecrease(old.item_code, old.quantity); // rollback stok
                     await purchasesModel.deletePurchaseOrderById(id);
-                    existingIds.delete(id); // Hindari update
+                    existingIds.delete(id);
                 }
             }
 
@@ -244,9 +250,20 @@ const purchasesController = {
                 formIds.add(id);
 
                 if (existingIds.has(id)) {
+                    const old = await purchasesModel.getOrderById(id);
+
                     await purchasesModel.updatePurchaseOrder(id, item, qty, price);
+
+                    if (old.item_code !== item) {
+                        await itemsModel.updateStockDecrease(old.item_code, old.quantity);
+                        await itemsModel.updateStockIncrease(item, qty);
+                    } else {
+                        const delta = qty - old.quantity;
+                        if (delta !== 0) await itemsModel.updateStockIncrease(item, delta);
+                    }
                 } else {
                     await purchasesModel.insertSinglePurchaseOrder(id, transactionId, item, qty, price);
+                    await itemsModel.updateStockIncrease(item, qty);
                 }
 
                 updatedCount++;
@@ -256,15 +273,12 @@ const purchasesController = {
                 return res.status(400).json({ error: 'Tidak ada data valid untuk disimpan.' });
             }
 
-            // 🔄 Update total tagihan
             await purchasesModel.updateTotalAmountByTransactionId(transactionId);
 
-            // 🔁 Update status pembayaran otomatis
             const detail = await purchasesModel.getPurchaseTransactionDetail(transactionId);
             const totalPaid = detail.header.total_dibayar || 0;
             const totalTagihan = detail.header.total_tagihan || 0;
             const status = totalPaid >= totalTagihan ? 'Lunas' : 'Belum Lunas';
-
             await purchasesModel.updatePaymentStatus(transactionId, status);
 
             res.status(200).json({ message: 'Pesanan berhasil diperbarui.' });
@@ -274,6 +288,7 @@ const purchasesController = {
             res.status(500).json({ error: 'Gagal menyimpan data pembelian.' });
         }
     },
+
 
     // =========================
     // 💵 PEMBAYARAN PEMBELIAN

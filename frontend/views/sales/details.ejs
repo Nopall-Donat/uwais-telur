@@ -108,7 +108,8 @@
                                                                 class="form-control item-subtotal">
                                                         </td>
                                                         <td>
-                                                            <button type="button" class="btn btn-danger btn btn-delete-row bi bi-trash-fill"></button>
+                                                            <button type="button"
+                                                                class="btn btn-danger btn btn-delete-row bi bi-trash-fill"></button>
                                                         </td>
                                                     </tr>
                                                     <% }) %>
@@ -172,7 +173,8 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-3 text-end d-flex flex-column align-items-end justify-content-between h-100">
+                                <div
+                                    class="col-md-3 text-end d-flex flex-column align-items-end justify-content-between h-100">
                                     <label class="form-label fw-semibold">Total Dibayar</label>
                                     <div class="text-success fw-semibold fs-6 mb-3">
                                         Rp <%= Number(detail.total_dibayar || 0).toLocaleString('id-ID') %>
@@ -181,8 +183,8 @@
                                     <label class="form-label ">
                                         <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
                                             data-bs-target="#modalRiwayatPembayaran" title="Lihat Riwayat">
-                                            <i class="bi bi-clock-history me-1"></i> Lihat Riwayat 
-                                            
+                                            <i class="bi bi-clock-history me-1"></i> Lihat Riwayat
+
                                         </button>
                                     </label>
                                 </div>
@@ -217,7 +219,6 @@
                             <i class="bi bi-trash3"></i> Hapus Transaksi
                         </button>
                     </div>
-
 
                     <!-- alert -->
                     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
@@ -426,10 +427,7 @@
                             </div>
                         </div>
                     </div>
-
-
                 </main>
-
 
                 <script id="saved-orders" type="application/json">
                     <%- JSON.stringify(orders.map(o => o.sales_order_id)) %>
@@ -444,8 +442,8 @@
                     <%- JSON.stringify(orders.length > 0) %>
                 </script>
 
-                <script src="/assets/js/sales/detailsScript.js"></script>
-    </body>
+        </body>
+    <script src="/assets/js/sales/detailsScript.js"></script>
     <%- include('../layout/footer') %>
 
 </html>

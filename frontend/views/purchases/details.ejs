@@ -211,6 +211,66 @@
                         </button>
                     </div>
 
+                    <!-- 🔔 TOAST NOTIFIKASI ORDER -->
+                    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+                        <div id="orderToast" class="toast align-items-center text-bg-success border-0" role="alert">
+                            <div class="d-flex">
+                                <div class="toast-body" id="orderToastBody">
+                                    Data berhasil disimpan.
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                    data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Konfirmasi Hapus Order -->
+                    <div class="modal fade" id="modalKonfirmasiHapusOrder" tabindex="-1" aria-labelledby="modalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-danger">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title" id="modalLabel">Peringatan Serius</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body text-center fs-5">
+                                    <p>Item ini sudah tersimpan di database.</p>
+                                    <p>Apakah Anda yakin ingin <strong class="text-danger">menghapus atau
+                                            mengubah</strong> item ini?</p>
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button type="button" class="btn btn-secondary" id="btnBatalHapusOrder"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-danger" id="btnKonfirmasiHapusOrder"
+                                        data-bs-dismiss="modal">Ya, Hapus</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Konfirmasi Simpan Pesanan -->
+                    <div class="modal fade" id="modalKonfirmasiSimpan" tabindex="-1" aria-labelledby="modalSimpanLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-success">
+                                <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title" id="modalSimpanLabel">Konfirmasi Simpan Pesanan</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body text-center fs-6">
+                                    <p>Apakah Anda yakin ingin menyimpan pesanan ini?</p>
+                                    <p>Pastikan data item sudah benar dan lengkap.</p>
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-success" id="btnKonfirmasiSimpan">Ya,
+                                        Simpan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 🧾 Modal Pembayaran -->
                     <div class="modal fade" id="modalPembayaran" tabindex="-1" aria-labelledby="modalPembayaranLabel"
                         aria-hidden="true">
@@ -373,9 +433,9 @@
                     </script>
 
                     <!-- Script Controller -->
-                    <script src="/assets/js/purchases/detailsScript.js"></script>
-
-    </body>
+                    
+        </body>
+        <script src="/assets/js/purchases/detailsScript.js"></script>
     <%- include('../layout/footer') %>
 
 </html>

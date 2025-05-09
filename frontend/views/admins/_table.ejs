@@ -1,0 +1,73 @@
+<% if (admins && admins.length> 0) { %>
+    <table class="table table-hover table-responsive mt-3" id="adminsTable">
+        <thead class="text-center">
+            <tr>
+                <th scope="col">ID Admin</th>
+                <th scope="col">Nama Admin</th>
+                <th scope="col">Username</th>
+                <th scope="col">Tanggal Dibuat</th>
+                <th scope="col">Detail</th>
+                <th scope="col">Hapus</th>
+            </tr>
+        </thead>
+        <tbody class="text-center">
+            <% admins.forEach(admin=> { %>
+                <tr>
+                    <td>
+                        <%= admin.admin_id %>
+                    </td>
+                    <td>
+                        <%= admin.admin_name %>
+                    </td>
+                    <td>
+                        <%= admin.username %>
+                    </td>
+                    <td>
+                        <%= admin.created_at %>
+                    </td>
+                    <td>
+                        <a href="/admins/details/<%= admin.admin_id %>" class="btn btn-sm btn-primary">Detail</a>
+                    </td>
+                    <td>
+                        <button class="btn btn-delete btn-danger btn-sm" data-id="<%= admin.admin_id %>">Hapus</button>
+                    </td>
+                </tr>
+                <% }) %>
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-center mt-4">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+
+                <!-- Tombol Previous -->
+                <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="javascript:void(0);" data-page="<%= page - 1 %>" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+
+                <!-- Nomor halaman 1-3 -->
+                <% for (let i=1; i <=3; i++) { %>
+                    <li class="page-item <%= page === i ? 'active' : '' %> <%= i > totalPages ? 'disabled' : '' %>">
+                        <a class="page-link" href="javascript:void(0);" data-page="<%= i %>">
+                            <%= i %>
+                        </a>
+                    </li>
+                    <% } %>
+
+                        <!-- Tombol Next -->
+                        <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+                            <a class="page-link" href="javascript:void(0);" data-page="<%= page + 1 %>"
+                                aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+
+            </ul>
+        </nav>
+    </div>
+
+    <% } else { %>
+        <p class="text-center mt-4">Tidak ada admin ditemukan.</p>
+        <% } %>

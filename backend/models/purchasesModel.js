@@ -126,7 +126,7 @@ module.exports = {
             throw err;
         }
     },
-    
+
     // ================================
     // DETAIL PESANAN TRANSAKSI PEMBELIAN
     // ================================
@@ -293,6 +293,24 @@ module.exports = {
             throw err;
         }
     },
+
+    // 🔍 Ambil data lama berdasarkan ID pesanan
+    getOrderById: async (orderId) => {
+        const db = await dbPromise;
+        return await db.get(`
+        SELECT item_code, quantity
+        FROM purchase_orders
+        WHERE purchase_order_id = ?
+    `, [orderId]);
+    },
+    getOrdersByTransaction: async (transactionId) => {
+        const db = await dbPromise;
+        return await db.all(`
+            SELECT item_code, quantity
+            FROM purchase_orders
+            WHERE purchase_transaction_id = ?
+        `, [transactionId]);
+    },    
 
     // ================================
     // PEMBAYARAN TRANSAKSI PEMBELIAN

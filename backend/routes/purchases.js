@@ -1,56 +1,47 @@
 const express = require('express');
 const router = express.Router();
 const purchasesController = require('../controllers/purchasesController');
-
 const multer = require('multer');
 const upload = multer(); // untuk menangani FormData tanpa file
+
+const { ensureAuthenticated } = require('../middleware/authMiddleware');
 
 // ------------------------
 // 📄 ROUTE UTAMA
 // ------------------------
 
-// Halaman utama (index pembelian)
-router.get('/', purchasesController.viewIndexPurchases);
-// Data dengan filter (AJAX)
-router.get('/data', purchasesController.listPurchases);
-// API semua data
-router.get('/api', purchasesController.getAllPurchases);
+router.get('/', ensureAuthenticated, purchasesController.viewIndexPurchases);
+router.get('/data', ensureAuthenticated, purchasesController.listPurchases);
+router.get('/api', ensureAuthenticated, purchasesController.getAllPurchases);
 
 // ------------------------
 // 🧾 TRANSAKSI
 // ------------------------
 
-// Tambah transaksi baru
-router.post('/add', purchasesController.createPurchase);
-// Detail transaksi
-router.get('/details/:id', purchasesController.viewPurchaseDetail);
-// Hapus transaksi
-router.get('/delete/:id', purchasesController.deletePurchase);
+router.post('/add', ensureAuthenticated, purchasesController.createPurchase);
+router.get('/details/:id', ensureAuthenticated, purchasesController.viewPurchaseDetail);
+router.get('/delete/:id', ensureAuthenticated, purchasesController.deletePurchase);
 
 // ------------------------
 // 📦 ORDER
 // ------------------------
 
-// Tambah / Update pesanan
-router.post('/order', upload.none(), purchasesController.addOrderToPurchase);
+router.post('/order', ensureAuthenticated, upload.none(), purchasesController.addOrderToPurchase);
 
 // ------------------------
 // 💵 PEMBAYARAN
 // ------------------------
 
-router.post('/payment', upload.none(), purchasesController.addPaymentToPurchase);
-router.post('/payment/delete', purchasesController.deletePurchasePayment);
-router.get('/payments/:id', purchasesController.getPurchasePaymentHistory);
+router.post('/payment', ensureAuthenticated, upload.none(), purchasesController.addPaymentToPurchase);
+router.post('/payment/delete', ensureAuthenticated, purchasesController.deletePurchasePayment);
+router.get('/payments/:id', ensureAuthenticated, purchasesController.getPurchasePaymentHistory);
 
 // ------------------------
 // 🔧 UTILITAS
 // ------------------------
 
-// Generate ID Order baru
-router.get('/generate/order-id', purchasesController.generateNewPurchaseOrderId);
-// Backup data pembelian
-router.get('/backup', purchasesController.backupPurchasesToExcel);
-// Cetak Nota Pembelian
-router.get('/nota/:id', purchasesController.viewPurchaseReceipt);
+router.get('/generate/order-id', ensureAuthenticated, purchasesController.generateNewPurchaseOrderId);
+router.get('/backup', ensureAuthenticated, purchasesController.backupPurchasesToExcel);
+router.get('/nota/:id', ensureAuthenticated, purchasesController.viewPurchaseReceipt);
 
 module.exports = router;

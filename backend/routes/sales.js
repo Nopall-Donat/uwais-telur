@@ -1,57 +1,47 @@
 const express = require('express');
 const router = express.Router();
 const salesController = require('../controllers/salesController');
-
-// ⬇️ Tambahkan multer untuk menangani multipart/form-data dari FormData
 const multer = require('multer');
 const upload = multer(); // Gunakan upload.none() untuk form tanpa file
+
+const { ensureAuthenticated } = require('../middleware/authMiddleware');
 
 // ------------------------
 // 📄 ROUTE UTAMA
 // ------------------------
 
-// Halaman utama (index penjualan)
-router.get('/', salesController.viewIndexSales);
-// Data dengan filter (AJAX)
-router.get('/data', salesController.listSales);
-// API semua data
-router.get('/api', salesController.getAllSales);
+router.get('/', ensureAuthenticated, salesController.viewIndexSales);
+router.get('/data', ensureAuthenticated, salesController.listSales);
+router.get('/api', ensureAuthenticated, salesController.getAllSales);
 
 // ------------------------
 // 🧾 TRANSAKSI
 // ------------------------
 
-// Tambah transaksi baru
-router.post('/add', salesController.createSales);
-// Detail transaksi
-router.get('/details/:id', salesController.viewSalesDetail);
-// Delete Transaksi
-router.get('/delete/:id', salesController.deleteSales);
+router.post('/add', ensureAuthenticated, salesController.createSales);
+router.get('/details/:id', ensureAuthenticated, salesController.viewSalesDetail);
+router.get('/delete/:id', ensureAuthenticated, salesController.deleteSales);
 
 // ------------------------
 // 📦 ORDER
 // ------------------------
 
-// Tambah / Update pesanan
-router.post('/order', upload.none(), salesController.addOrderToSales);
+router.post('/order', ensureAuthenticated, upload.none(), salesController.addOrderToSales);
 
 // ------------------------
 // 💵 PEMBAYARAN
 // ------------------------
 
-router.post('/payment', upload.none(), salesController.addPaymentToSales);
-router.post('/payment/delete', salesController.deleteSalesPayment);
-router.get('/payments/:id', salesController.getSalesPaymentHistory);
+router.post('/payment', ensureAuthenticated, upload.none(), salesController.addPaymentToSales);
+router.post('/payment/delete', ensureAuthenticated, salesController.deleteSalesPayment);
+router.get('/payments/:id', ensureAuthenticated, salesController.getSalesPaymentHistory);
 
 // ------------------------
 // 🔧 UTILITAS
 // ------------------------
 
-// Generate ID Order baru
-router.get('/generate/order-id', salesController.generateNewOrderId);
-// Backup database
-router.get('/backup', salesController.backupSalesToExcel);
-// Cetak Nota Penjualan
-router.get('/nota/:id', salesController.viewSalesReceipt);
+router.get('/generate/order-id', ensureAuthenticated, salesController.generateNewOrderId);
+router.get('/backup', ensureAuthenticated, salesController.backupSalesToExcel);
+router.get('/nota/:id', ensureAuthenticated, salesController.viewSalesReceipt);
 
 module.exports = router;

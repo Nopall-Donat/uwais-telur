@@ -128,5 +128,38 @@ module.exports = {
             console.error('itemsModel.countItems error:', err);
             throw err;
         }
-    }
+    },
+
+    // Update item stock quantity
+
+    // 🔼 Tambah stok (setelah pembelian)
+    updateStockIncrease: async (itemCode, quantity) => {
+        try {
+            const db = await dbPromise;
+            await db.run(`
+            UPDATE items
+            SET stock_quantity = stock_quantity + ?, updated_at = CURRENT_TIMESTAMP
+            WHERE item_code = ?
+        `, [quantity, itemCode]);
+        } catch (err) {
+            console.error('itemsModel.updateStockIncrease error:', err);
+            throw err;
+        }
+    },
+
+    // 🔽 Kurangi stok (setelah penjualan)
+    updateStockDecrease: async (itemCode, quantity) => {
+        try {
+            const db = await dbPromise;
+            await db.run(`
+            UPDATE items
+            SET stock_quantity = stock_quantity - ?, updated_at = CURRENT_TIMESTAMP
+            WHERE item_code = ?
+        `, [quantity, itemCode]);
+        } catch (err) {
+            console.error('itemsModel.updateStockDecrease error:', err);
+            throw err;
+        }
+    },
+
 };

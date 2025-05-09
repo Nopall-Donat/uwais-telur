@@ -298,6 +298,26 @@ module.exports = {
         }
     },
 
+    // 🔍 Ambil data lama berdasarkan ID pesanan
+    getOrderById: async (orderId) => {
+        const db = await dbPromise;
+        return await db.get(`
+        SELECT item_code, quantity
+        FROM sales_orders
+        WHERE sales_order_id = ?
+    `, [orderId]);
+    },
+
+    getOrdersByTransaction: async (transactionId) => {
+        const db = await dbPromise;
+        return await db.all(`
+            SELECT item_code, quantity
+            FROM sales_orders
+            WHERE sales_transaction_id = ?
+        `, [transactionId]);
+    },    
+
+
     // ================================
     // PAYMENT
     // ================================

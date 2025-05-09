@@ -3,6 +3,7 @@ let rowToDelete = null;
 let tempRows = [];
 let usedUruts = new Set();
 const items = JSON.parse(document.getElementById('item-data').textContent);
+console.log(items); // pastikan array isi item terbaca
 
 // ======================
 // ✅ TOAST HANDLER
@@ -128,7 +129,7 @@ function bindRowEvents(row) {
     select.addEventListener('change', () => {
         const selectedItem = items.find(i => i.item_code === select.value);
         nameInput.value = selectedItem ? selectedItem.item_type : '';
-        priceInput.value = selectedItem ? selectedItem.buying_price : 0;  // 🟡 khusus pembelian
+        priceInput.value = selectedItem ? selectedItem.purchase_price : 0;  // 🟡 khusus pembelian
         updateSubtotal();
     });
 
@@ -469,7 +470,7 @@ document.addEventListener('click', async function (e) {
             toastSuccess(result.message || 'Pembayaran berhasil dihapus.');
             if (transactionId) {
                 setTimeout(() => {
-                    window.location.href = `/purchase/details/${transactionId}`;
+                    window.location.href = `/purchases/details/${transactionId}`;
                 }, 1000);
             }
         } else {

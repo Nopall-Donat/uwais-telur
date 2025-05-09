@@ -49,16 +49,16 @@ const customersController = {
         }
     },
 
-    getAllLimitCustomer: async (req, res, next) => {
-        try {
-            const limit = parseInt(req.query.limit) || 10;
-            const customers = await customerModel.getAllLimitCustomer(limit);
-            res.json(customers);
-        } catch (err) {
-            console.error('getAllLimitCustomer error:', err);
-            next(err);
-        }
-    },
+    // getAllLimitCustomer: async (req, res, next) => {
+    //     try {
+    //         const limit = parseInt(req.query.limit) || 10;
+    //         const customers = await customerModel.getAllLimitCustomer(limit);
+    //         res.json(customers);
+    //     } catch (err) {
+    //         console.error('getAllLimitCustomer error:', err);
+    //         next(err);
+    //     }
+    // },
 
     updateByIdCustomer: async (req, res, next) => {
         try {
