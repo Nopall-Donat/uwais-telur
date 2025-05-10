@@ -100,7 +100,7 @@
                                                 <div class="modal-body">
                                                     <div id="formAlert" class="alert alert-danger d-none">Semua field
                                                         wajib diisi!</div>
-                                                    <form action="/admins/add" method="POST" class="row g-3">
+                                                    <form id="adminForm" action="/admins/add" method="POST" class="row g-3">
                                                         <div class="col-md-12">
                                                             <label for="admin_name" class="form-label">Nama
                                                                 Admin</label>
@@ -123,11 +123,12 @@
                                                             <input type="password" name="confirm_password"
                                                                 id="confirm_password" class="form-control">
                                                         </div>
+                                                        <input type="hidden" name="confirm_password_login" id="confirm_password_hidden">
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary"
                                                                 data-bs-dismiss="modal">Batal</button>
-                                                            <button type="submit"
-                                                                class="btn btn-success">Simpan</button>
+                                                            <button type="button" class="btn btn-success"
+                                                                id="btnSubmitAddAdmin">Simpan</button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -140,11 +141,43 @@
                             </div>
                         </div>
                     </section>
-                </main>
-                
-        </body>
 
-        <script src="/assets/js/admins/indexScript.js"></script>
+                    <!-- 🔒 Modal Konfirmasi Password Global -->
+                    <div class="modal fade" id="modalKonfirmasiPasswordGlobal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border border-danger">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title">Konfirmasi Aksi Admin</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="mb-2">Masukkan password Anda untuk melanjutkan:</p>
+                                    <input type="password" id="globalConfirmPassword" class="form-control"
+                                        placeholder="Password Anda" required>
+                                    <div class="invalid-feedback mt-2 d-none" id="globalConfirmPasswordError">
+                                        Password tidak boleh kosong.
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-danger"
+                                        id="btnGlobalKonfirmasi">Konfirmasi</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="adminDeleteForm" action="/admins/delete/:id" method="POST" class="d-none">
+                        <input type="hidden" name="confirm_password" id="globalConfirmHiddenInput">
+                    </form>
+
+
+                </main>
+
+    </body>
+
+    <script src="/assets/js/admins/indexScript.js"></script>
     <%- include('../layout/footer') %>
 
 </html>

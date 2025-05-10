@@ -1,78 +1,59 @@
-// ✅ Delegasi tombol hapus admin
-document.addEventListener('DOMContentLoaded', () => {
-    document.body.addEventListener('click', function (e) {
-        if (e.target && e.target.classList.contains('btn-delete')) {
-            const id = e.target.getAttribute('data-id');
-            if (confirm('Yakin ingin menghapus admin ini?')) {
-                // Gunakan method POST dengan form tersembunyi atau konfirmasi password di detail view
-                window.location.href = '/admins/delete/' + id;
-            }
-        }
-    });
-});
-
 // ✅ Validasi Form Tambah Admin
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('adminForm');
-    const formAlert = document.getElementById('formAlert');
-    const modalEl = document.getElementById('modalTambahAdmin');
+document.addEventListener('DOMContentLoaded', () => {
+    const addForm = document.getElementById('adminForm');
+    const btnSubmitAdd = document.getElementById('btnSubmitAddAdmin');
+    const modal = new bootstrap.Modal(document.getElementById('modalKonfirmasiPasswordGlobal'));
+    const confirmInput = document.getElementById('globalConfirmPassword');
+    const errorFeedback = document.getElementById('globalConfirmPasswordError');
+    const confirmHiddenInput = document.getElementById('confirm_password_hidden');
 
-    if (form && formAlert && modalEl) {
-        form.addEventListener('submit', function (e) {
+    if (addForm && btnSubmitAdd) {
+        btnSubmitAdd.addEventListener('click', () => {
+            // Validasi dulu
             let isValid = true;
-            const fields = ['admin_name', 'username', 'password', 'confirm_password'];
-            const inputs = fields.map(id => document.getElementById(id));
+            const name = document.getElementById('admin_name');
+            const user = document.getElementById('username');
+            const pass = document.getElementById('password');
+            const confirm = document.getElementById('confirm_password');
 
-            inputs.forEach(i => {
-                i.classList.remove('is-invalid', 'is-valid');
-            });
-            formAlert.classList.add('d-none');
+            [name, user, pass, confirm].forEach(el => el.classList.remove('is-invalid'));
 
-            const [nameInput, usernameInput, passInput, confirmInput] = inputs;
-
-            if (!nameInput.value.trim()) {
-                nameInput.classList.add('is-invalid');
+            if (!name.value.trim()) {
+                name.classList.add('is-invalid');
                 isValid = false;
-            } else {
-                nameInput.classList.add('is-valid');
             }
-
-            if (!usernameInput.value.trim()) {
-                usernameInput.classList.add('is-invalid');
+            if (!user.value.trim()) {
+                user.classList.add('is-invalid');
                 isValid = false;
-            } else {
-                usernameInput.classList.add('is-valid');
             }
-
-            if (!passInput.value.trim()) {
-                passInput.classList.add('is-invalid');
+            if (!pass.value.trim()) {
+                pass.classList.add('is-invalid');
                 isValid = false;
-            } else {
-                passInput.classList.add('is-valid');
             }
-
-            if (confirmInput.value.trim() !== passInput.value.trim()) {
-                confirmInput.classList.add('is-invalid');
+            if (confirm.value !== pass.value) {
+                confirm.classList.add('is-invalid');
                 isValid = false;
-            } else {
-                confirmInput.classList.add('is-valid');
             }
 
-            if (!isValid) {
-                e.preventDefault();
-                formAlert.innerText = 'Semua field wajib diisi dengan benar!';
-                formAlert.classList.remove('d-none');
-            }
+            if (!isValid) return;
+
+            bootstrap.Modal.getInstance(document.getElementById('modalTambahAdmin'))?.hide();
+            // Show modal konfirmasi password
+            confirmInput.value = '';
+            errorFeedback.classList.add('d-none');
+            modal.show();
         });
 
-        modalEl.addEventListener('hidden.bs.modal', function () {
-            form.classList.remove('was-validated');
-            form.reset();
-            ['admin_name', 'username', 'password', 'confirm_password'].forEach(id => {
-                const el = document.getElementById(id);
-                el.classList.remove('is-invalid', 'is-valid');
-            });
-            formAlert.classList.add('d-none');
+        // Saat klik tombol konfirmasi password
+        document.getElementById('btnGlobalKonfirmasi')?.addEventListener('click', () => {
+            const pwd = confirmInput.value.trim();
+            if (!pwd) {
+                errorFeedback.classList.remove('d-none');
+                return;
+            }
+            confirmHiddenInput.value = pwd;
+            modal.hide();
+            addForm.submit();
         });
     }
 });
@@ -128,15 +109,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('adminUpdateForm');
-    const modal = new bootstrap.Modal(document.getElementById('modalKonfirmasiPassword'));
-    const btnSubmit = form.querySelector('button[type="submit"]');
+    const btnSubmit = document.getElementById('btnSubmitUpdateAdmin');
+    const modalEl = document.getElementById('modalKonfirmasiPassword');
     const confirmInput = document.getElementById('confirmCurrentPassword');
     const hiddenConfirm = document.getElementById('confirm_password_hidden');
     const errorFeedback = document.getElementById('confirmPasswordError');
 
-    if (form && btnSubmit && modal && confirmInput && hiddenConfirm) {
-        btnSubmit.addEventListener('click', function (e) {
-            e.preventDefault();
+    if (form && btnSubmit && modalEl && confirmInput && hiddenConfirm) {
+        const modal = new bootstrap.Modal(modalEl);
+
+        btnSubmit.addEventListener('click', function () {
             confirmInput.value = '';
             errorFeedback.classList.add('d-none');
             modal.show();
@@ -148,9 +130,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorFeedback.classList.remove('d-none');
                 return;
             }
-            hiddenConfirm.value = val;
+            // Saat user submit melalui modal konfirmasi
+            hiddenConfirm.value = confirmInput.value.trim(); // string dikirim ke input hidden
             modal.hide();
             form.submit();
         });
     }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = new bootstrap.Modal(document.getElementById('modalKonfirmasiPasswordGlobal'));
+    const confirmBtn = document.getElementById('btnGlobalKonfirmasi');
+    const confirmInput = document.getElementById('globalConfirmPassword');
+    const errorFeedback = document.getElementById('globalConfirmPasswordError');
+    const hiddenInput = document.getElementById('globalConfirmHiddenInput');
+    const deleteForm = document.getElementById('adminDeleteForm');
+
+    let pendingAction = null;
+    let pendingId = null;
+
+    document.body.addEventListener('click', function (e) {
+        if (e.target.classList.contains('btn-delete')) {
+            pendingAction = 'delete';
+            pendingId = e.target.dataset.id;
+            confirmInput.value = '';
+            errorFeedback.classList.add('d-none');
+            modal.show();
+        }
+    });
+
+    confirmBtn.addEventListener('click', function () {
+        const pwd = confirmInput.value.trim();
+        if (!pwd) {
+            errorFeedback.classList.remove('d-none');
+            return;
+        }
+        hiddenInput.value = pwd;
+
+        if (pendingAction === 'delete') {
+            deleteForm.setAttribute('action', `/admins/delete/${pendingId}`);
+            deleteForm.submit();
+        }
+
+        modal.hide();
+    });
 });

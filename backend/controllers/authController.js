@@ -9,37 +9,36 @@ module.exports = {
 
     processLogin: async (req, res) => {
         try {
-            const { username, password } = req.body; // ✅ gunakan `username`, bukan `admin_id`
+            const { username, password } = req.body;
             console.log('Login attempt with username:', username);
             console.log('Login attempt with password:', password);
 
             if (!username || !password) {
-                req.flash('error', 'Username dan password wajib diisi.');
+                req.session.message = { type: 'danger', text: 'Username dan password wajib diisi.' };
                 return res.redirect('/login');
             }
 
             const admin = await adminsModel.getAdminByUsername(username);
 
             if (!admin) {
-                req.flash('error', 'Username tidak ditemukan.');
+                req.session.message = { type: 'danger', text: 'Username tidak ditemukan.' };
                 return res.redirect('/login');
             }
 
             const match = await bcrypt.compare(password, admin.password);
             if (!match) {
-                req.flash('error', 'Password salah.');
+                req.session.message = { type: 'danger', text: 'Password salah.' };
                 return res.redirect('/login');
             }
 
-            // ✅ Simpan info login ke session
             req.session.admin_id = admin.admin_id;
             req.session.admin_name = admin.admin_name;
 
-            res.redirect('/');
+            return res.redirect('/');
         } catch (err) {
             console.error('Login error:', err);
-            req.flash('error', 'Terjadi kesalahan saat login.');
-            res.redirect('/login');
+            req.session.message = { type: 'danger', text: 'Terjadi kesalahan saat login.' };
+            return res.redirect('/login');
         }
     },
 

@@ -60,7 +60,7 @@ app.use(session({
 
 // Inject data session ke view
 app.use((req, res, next) => {
-    res.locals.messages = req.flash();
+    res.locals.message = req.session.message;
     res.locals.admin_id = req.session.admin_id;
     res.locals.admin_name = req.session.admin_name;
     next();

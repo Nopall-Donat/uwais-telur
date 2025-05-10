@@ -29,7 +29,12 @@
                         <a href="/admins/details/<%= admin.admin_id %>" class="btn btn-sm btn-primary">Detail</a>
                     </td>
                     <td>
-                        <button class="btn btn-delete btn-danger btn-sm" data-id="<%= admin.admin_id %>">Hapus</button>
+                        <% if (admin.admin_id !=='A00000001' && admin.admin_id !==admin_id) { %>
+                            <button type="button" class="btn btn-delete btn-danger btn-sm"
+                                data-id="<%= admin.admin_id %>" data-action="delete">Hapus</button>
+                        <% } else { %>
+                            <span class="badge bg-secondary">Terkunci</span>
+                        <% } %>
                     </td>
                 </tr>
                 <% }) %>
