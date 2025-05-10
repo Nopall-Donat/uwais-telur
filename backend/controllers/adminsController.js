@@ -1,6 +1,7 @@
 const adminsModel = require("../models/adminsModel");
 const bcrypt = require("bcryptjs");
 const { getCurrentTimestampWIB } = require("../../utils/time");
+const SUPER_ADMIN_ID = 'A00000001';
 
 const adminsController = {
     viewIndexAdmins: async (req, res, next) => {

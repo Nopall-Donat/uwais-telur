@@ -3,6 +3,8 @@
 --------------------------------------------------------------*/
 
 :root {
+  --password-icon-color: #6c757d;
+  --password-icon-hover: #0d6efd;
   scroll-behavior: smooth;
 }
 
@@ -1285,4 +1287,20 @@ tr.pending-delete {
   text-decoration: line-through;
   opacity: 0.6;
   transition: background-color 0.3s ease;
+}
+
+.password-icon {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  
+  font-size: 1.2rem;
+  color: var(--password-icon-color);
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.password-icon:hover {
+  color: var(--password-icon-hover);
+  transform: translateY(0) scale(1.02);
 }

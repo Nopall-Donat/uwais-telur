@@ -29,79 +29,89 @@
                                     <div class="card-body pt-4">
                                         <h5 class="card-title">Detail Admin</h5>
 
-                                        <% if (typeof message !== 'undefined' && message) { %>
-                                            <div class="alert alert-<%= message.type %> alert-dismissible fade show" role="alert">
-                                            <%= message.text %>
-                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        <% if (typeof message !=='undefined' && message) { %>
+                                            <div class="alert alert-<%= message.type %> alert-dismissible fade show"
+                                                role="alert">
+                                                <%= message.text %>
+                                                    <button type="button" class="btn-close"
+                                                        data-bs-dismiss="alert"></button>
                                             </div>
-                                        <% } %>
+                                            <% } %>
 
-                                        <form action="/admins/update/<%= admin.admin_id %>" method="POST"
-                                            class="row g-3" id="adminUpdateForm">
+                                                <form action="/admins/update/<%= admin.admin_id %>" method="POST"
+                                                    class="row g-3" id="adminUpdateForm">
+                                                    <div class="col-md-6">
+                                                        <label for="admin_id" class="form-label">ID Admin</label>
+                                                        <input type="text" id="admin_id" class="form-control"
+                                                            value="<%= admin.admin_id %>" readonly disabled>
+                                                    </div>
 
-                                            <div class="col-md-6">
-                                                <label for="admin_id" class="form-label">ID Admin</label>
-                                                <input type="text" id="admin_id" class="form-control"
-                                                    value="<%= admin.admin_id %>" readonly disabled>
-                                            </div>
+                                                    <div class="col-md-6">
+                                                        <label for="admin_name" class="form-label">Nama Admin</label>
+                                                        <input type="text" id="admin_name" name="admin_name"
+                                                            class="form-control" value="<%= admin.admin_name %>"
+                                                            required>
+                                                    </div>
 
-                                            <div class="col-md-6">
-                                                <label for="admin_name" class="form-label">Nama Admin</label>
-                                                <input type="text" id="admin_name" name="admin_name"
-                                                    class="form-control" value="<%= admin.admin_name %>"
-                                                    required>
-                                            </div>
+                                                    <div class="col-md-6">
+                                                        <label for="username" class="form-label">Username</label>
+                                                        <input type="text" id="username" name="username"
+                                                            class="form-control" value="<%= admin.username %>" required>
+                                                    </div>
 
-                                            <div class="col-md-6">
-                                                <label for="username" class="form-label">Username</label>
-                                                <input type="text" id="username" name="username"
-                                                    class="form-control" value="<%= admin.username %>" required>
-                                            </div>
+                                                    <div class="col-md-6">
+                                                        <label for="updated_at" class="form-label">Waktu
+                                                            Diupdate</label>
+                                                        <input type="text" class="form-control"
+                                                            value="<%= admin.updated_at %>" readonly disabled>
+                                                    </div>
 
-                                            <div class="col-md-6">
-                                                <label for="updated_at" class="form-label">Waktu
-                                                    Diupdate</label>
-                                                <input type="text" class="form-control"
-                                                    value="<%= admin.updated_at %>" readonly disabled>
-                                            </div>
+                                                    <!-- Password Baru -->
+                                                    <div class="col-md-6 position-relative">
+                                                        <label for="password" class="form-label">Password Baru</label>
+                                                        <input type="password" id="password" name="password"
+                                                            class="form-control pe-5"
+                                                            placeholder="Kosongkan jika tidak ingin ganti password">
+                                                        <i class="bi bi-eye-slash password-icon"
+                                                            data-target="password"></i>
+                                                    </div>
 
-                                            <div class="col-md-6">
-                                                <label for="password" class="form-label">Password Baru</label>
-                                                <input type="password" id="password" name="password"
-                                                    class="form-control"
-                                                    placeholder="Kosongkan jika tidak ingin ganti password">
-                                            </div>
+                                                    <div class="col-md-6">
+                                                        <label for="created_at" class="form-label">Waktu Dibuat</label>
+                                                        <input type="text" class="form-control"
+                                                            value="<%= admin.created_at %>" readonly disabled>
+                                                    </div>
 
-                                            <div class="col-md-6">
-                                                <label for="created_at" class="form-label">Waktu Dibuat</label>
-                                                <input type="text" class="form-control"
-                                                    value="<%= admin.created_at %>" readonly disabled>
-                                            </div>
+                                                    <!-- Konfirmasi Password -->
+                                                    <div class="col-md-6 position-relative">
+                                                        <label for="confirm_password" class="form-label">Konfirmasi
+                                                            Password</label>
+                                                        <input type="password" id="confirm_password"
+                                                            name="confirm_password_visible" class="form-control pe-5"
+                                                            placeholder="Ulangi password di atas">
+                                                        <i class="bi bi-eye-slash password-icon"
+                                                            data-target="confirm_password"></i>
+                                                    </div>
 
-                                            <div class="col-md-6">
-                                                <label for="confirm_password" class="form-label">Konfirmasi
-                                                    Password</label>
-                                                <input type="password" id="confirm_password"
-                                                    name="confirm_password_visible" class="form-control"
-                                                    placeholder="Ulangi password di atas">
-                                            </div>
+                                                    <!-- Hidden untuk backend -->
+                                                    <input type="hidden" name="confirm_password"
+                                                        id="confirm_password_hidden">
 
-                                            <!-- Ini yang akan dikirim ke backend -->
-                                            <input type="hidden" name="confirm_password" id="confirm_password_hidden">
+                                                    <div class="d-flex justify-content-between mt-4">
+                                                        <a href="/admins" class="btn btn-secondary"><i
+                                                                class="bi bi-arrow-left"></i> Kembali</a>
+                                                        <% if (admin.admin_id !=='A00000001' ) { %>
+                                                            <button type="button" class="btn btn-success"
+                                                                id="btnSubmitUpdateAdmin">
+                                                                <i class="bi bi-save"></i> Simpan Perubahan
+                                                            </button>
+                                                            <% } else { %>
+                                                                <span class="badge bg-secondary align-self-center">Admin
+                                                                    ini tidak dapat diubah</span>
+                                                                <% } %>
+                                                    </div>
+                                                </form>
 
-                                            <div class="d-flex justify-content-between mt-4">
-                                                <a href="/admins" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Kembali</a>
-                                                
-                                                <% if (admin.admin_id !== 'A00000001') { %>
-                                                    <button type="button" class="btn btn-success" id="btnSubmitUpdateAdmin">
-                                                        <i class="bi bi-save"></i> Simpan Perubahan
-                                                    </button>
-                                                <% } else { %>
-                                                    <span class="badge bg-secondary align-self-center">Admin ini tidak dapat diubah</span>
-                                                <% } %>
-                                            </div>
-
-                                        </form>
                                     </div>
                                 </div>
 

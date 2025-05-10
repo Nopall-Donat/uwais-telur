@@ -17,7 +17,11 @@
                         <%= admin.admin_id %>
                     </td>
                     <td>
-                        <%= admin.admin_name %>
+                        <% if (admin.admin_id === 'A00000001') { %>
+                            <span class="badge bg-warning text-dark ms-1"><%= admin.admin_name %></span>
+                        <% }else { %>
+                            <%= admin.admin_name %>
+                        <% } %>
                     </td>
                     <td>
                         <%= admin.username %>

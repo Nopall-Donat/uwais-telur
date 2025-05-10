@@ -175,3 +175,20 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.hide();
     });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.password-icon').forEach(icon => {
+        icon.addEventListener('click', () => {
+            const targetId = icon.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            }
+        });
+    });
+});
