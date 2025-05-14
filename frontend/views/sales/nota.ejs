@@ -2,81 +2,96 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
     <title>Nota Transaksi - <%= transaction.sales_transaction_id %>
     </title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+            font-family: monospace;
+            font-size: 11px;
+            margin: 14pt;
+            padding: 0;
         }
 
-        .header {
+        .center {
             text-align: center;
-        }
-
-        .info {
-            margin-bottom: 20px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
 
         th,
         td {
-            border: 1px solid #aaa;
-            padding: 8px;
+            padding: 2px 4px;
             text-align: left;
         }
 
         th {
-            background-color: #f0f0f0;
+            border-bottom: 1px solid #000;
         }
 
-        .total {
+        .totals {
+            margin-top: 10px;
             text-align: right;
             font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        @media print {
+            @page {
+                size: 9.5in 11in;
+                margin: 0.5in;
+            }
         }
     </style>
 </head>
 
-<body>
-    <div class="header">
-        <h2>Toko Uwais Telur</h2>
-        <p>Nota Transaksi</p>
+<body onload="window.print()">
+
+    <div class="center">
+        <h2 style="margin: 0;">TOKO UWAIS TELUR</h2>
+        <p style="margin: 0;">Jl. Contoh Alamat, No. 123 - Telp: 0812-3456-7890</p>
+        <p style="margin-top: 5px;">NOTA TRANSAKSI</p>
     </div>
 
-    <div class="info">
-        <p><strong>No Transaksi:</strong>
-            <%= transaction.sales_transaction_id %>
-        </p>
-        <p><strong>Tanggal:</strong>
-            <%= transaction.transaction_time %>
-        </p>
-        <p><strong>Pelanggan:</strong>
-            <%= transaction.customer_name %> - <%= transaction.phone_number %>
-        </p>
-        <p><strong>Alamat:</strong>
-            <%= transaction.address %>
-        </p>
-        <p><strong>Admin:</strong>
-            <%= transaction.admin_name %>
-        </p>
-        <p><strong>Status:</strong>
-            <%= transaction.status %>
-        </p>
-    </div>
+    <hr>
 
-    <h4>Detail Pesanan:</h4>
+    <p><strong>No Transaksi:</strong>
+        <%= transaction.sales_transaction_id %>
+    </p>
+    <p><strong>Tanggal:</strong>
+        <%= transaction.transaction_time %>
+    </p>
+    <p><strong>Pelanggan:</strong>
+        <%= transaction.customer_name %> (<%= transaction.phone_number %>)
+    </p>
+    <p><strong>Alamat:</strong>
+        <%= transaction.address %>
+    </p>
+    <p><strong>Admin:</strong>
+        <%= transaction.admin_name %>
+    </p>
+    <p><strong>Status:</strong>
+        <%= transaction.status %>
+    </p>
+
+    <hr>
+
     <table>
         <thead>
             <tr>
                 <th>No</th>
-                <th>Nama Barang</th>
-                <th>Jumlah</th>
-                <th>Harga Satuan</th>
+                <th>Barang</th>
+                <th>Qty</th>
+                <th>Harga</th>
                 <th>Subtotal</th>
             </tr>
         </thead>
@@ -93,21 +108,18 @@
                         <%= item.quantity %>
                             <%= item.unit %>
                     </td>
-                    <td>Rp <%= item.unit_price.toLocaleString() %>
+                    <td>Rp <%= item.unit_price.toLocaleString('id-ID') %>
                     </td>
-                    <td>Rp <%= item.subtotal_price.toLocaleString() %>
+                    <td>Rp <%= item.subtotal_price.toLocaleString('id-ID') %>
                     </td>
                 </tr>
                 <% }) %>
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="4" class="total">Total Tagihan</td>
-                <td>Rp <%= total.toLocaleString() %>
-                </td>
-            </tr>
-        </tfoot>
     </table>
+
+    <div class="totals">
+        Total: Rp <%= total.toLocaleString('id-ID') %>
+    </div>
 
     <% if (payments.length> 0) { %>
         <h4>Pembayaran:</h4>
@@ -129,7 +141,7 @@
                         <td>
                             <%= pay.payment_method %>
                         </td>
-                        <td>Rp <%= pay.payment_amount.toLocaleString() %>
+                        <td>Rp <%= pay.payment_amount.toLocaleString('id-ID') %>
                         </td>
                         <td>
                             <%= pay.payment_time %>
@@ -140,9 +152,10 @@
         </table>
         <% } %>
 
-            <script>
-                window.print();
-            </script>
+            <div class="footer">
+                <p>--- Terima kasih atas pembelian Anda ---</p>
+            </div>
+
 </body>
 
 </html>

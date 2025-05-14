@@ -27,7 +27,7 @@ Struktur Direktori:
 - backend/: Logika aplikasi (controller, model, route)
 - config/: Konfigurasi database dan variabel lingkungan
 - frontend/views/: Template EJS
-- public/: File statis (CSS, JS)
+- assets/: File statis (CSS, JS)
 - utils/: Fungsi utilitas
 - app.js: Entry point aplikasi
 - package.json: Informasi proyek dan dependensi

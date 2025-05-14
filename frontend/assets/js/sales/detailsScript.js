@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadRiwayatPembayaran(transactionId);
             }
         });
-    }    
+    }
 });
 document.addEventListener('click', async function (e) {
     if (!e.target.classList.contains('btn-hapus-payment')) return;
@@ -476,7 +476,7 @@ document.addEventListener('click', async function (e) {
 
         if (res.ok) {
             toastSuccess(result.message || 'Pembayaran berhasil dihapus.');
-        
+
             if (transactionId) {
                 // ✅ Reload halaman agar total_dibayar & status otomatis update
                 setTimeout(() => {
@@ -509,4 +509,129 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+});
+
+// ======================
+// 🖨️ Modul Cetak Struk
+// ======================
+document.addEventListener('DOMContentLoaded', function () {
+    const btnOpenCetak = document.getElementById('btnOpenCetakNota');
+    const btnCetakFinal = document.getElementById('btnCetakNotaFinal');
+    const modalCetak = new bootstrap.Modal(document.getElementById('modalCetakNota'));
+    const iframeNota = document.getElementById('notaPreviewFrame');
+    const printerSelect = document.getElementById('printerSelect');
+    const printerStatus = document.getElementById('printerStatus');
+
+    // ✅ Ambil transactionId dari <script id="meta-detail">
+    let transactionId = '';
+    try {
+        const meta = document.getElementById('meta-detail');
+        const parsed = JSON.parse(meta.textContent);
+        transactionId = parsed.transactionId;
+    } catch (err) {
+        console.error('❌ Gagal mengambil transaction ID dari #meta-detail');
+        return;
+    }
+
+    // 🖨️ Saat tombol cetak diklik
+    btnOpenCetak?.addEventListener('click', async () => {
+        iframeNota.src = `/nota/${transactionId}`;
+
+        let defaultPrinter = null;
+
+        // ⬅️ Ambil default printer dulu
+        try {
+            const res = await fetch('/printer-default');
+            const data = await res.json();
+            defaultPrinter = data.defaultPrinter || null;
+            window._cachedDefaultPrinter = defaultPrinter;
+            console.log('🖨️ Default printer:', defaultPrinter);
+        } catch (err) {
+            console.warn('❌ Gagal ambil default printer:', err);
+        }
+
+        // ⬇️ Ambil daftar printer
+        try {
+            const res = await fetch('/printer-list');
+            const printers = await res.json();
+
+            printerSelect.innerHTML = '';
+            let foundDefault = false;
+
+            if (!printers.length) {
+                printerSelect.innerHTML = '<option disabled selected>Tidak ada printer terdeteksi</option>';
+                printerStatus.textContent = '🔌 Periksa koneksi printer.';
+            } else {
+                printers.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    opt.textContent = p.default ? `${p.name} (Default)` : p.name;
+
+                    if (
+                        defaultPrinter &&
+                        p.name.trim().toLowerCase() === defaultPrinter.trim().toLowerCase()
+                    ) {
+                        opt.selected = true;
+                        foundDefault = true;
+                    }
+
+                    printerSelect.appendChild(opt);
+                });
+
+                printerStatus.textContent = foundDefault
+                    ? `🖨️ Printer default "${defaultPrinter}" siap digunakan.`
+                    : defaultPrinter
+                        ? `⚠️ Printer default "${defaultPrinter}" tidak ditemukan.`
+                        : `🖨️ Silakan pilih printer.`;
+            }
+        } catch (err) {
+            printerSelect.innerHTML = '<option disabled selected>Gagal mengambil daftar printer</option>';
+            printerStatus.textContent = '❌ Tidak dapat menghubungi server printer.';
+        }
+
+        modalCetak.show();
+    });
+
+
+    // ✅ Tombol cetak final ditekan
+    btnCetakFinal?.addEventListener('click', async () => {
+        const printerName = printerSelect.value;
+        if (!printerName) return alert('Silakan pilih printer terlebih dahulu.');
+
+        // Simpan default printer jika dicentang
+        await fetch('/printer-default', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ printerName })
+        });
+
+        // ✅ update variable lokal
+        window._cachedDefaultPrinter = printerName;
+
+
+        try {
+            const res = await fetch(`/cetak-nota/${transactionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ printer: printerName })
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                alert(result.message || 'Nota berhasil dicetak.');
+                modalCetak.hide();
+                setTimeout(() => {
+                    btnOpenCetak.click(); // buka ulang modal untuk refresh printer default
+                }, 100);
+
+            } else {
+                alert(result.error || 'Gagal mencetak nota.');
+            }
+        } catch (err) {
+            console.error('❌ Error saat cetak:', err);
+            alert('Gagal mencetak. Mungkin kamu membatalkan dialog printer atau printer tidak tersedia.');
+        }
+    });
+
 });

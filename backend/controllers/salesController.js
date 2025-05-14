@@ -1,8 +1,19 @@
 const salesModel = require('../models/salesModel');
 const customerModel = require('../models/customersModel');
 const itemsModel = require('../models/itemsModel');
+
+
+
 const { getCurrentTimestampWIB } = require('../../utils/time');
+
+
 const ExcelJS = require('exceljs');
+
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
+const configPath = path.join(__dirname, '../../config/printer-config.json');
+const printer = require('pdf-to-printer');
 
 const salesController = {
     // =========================
@@ -469,7 +480,119 @@ const salesController = {
             console.error('viewSalesReceipt error:', err);
             res.status(500).send('Gagal menampilkan nota');
         }
-    }
+    },
+
+    getPrinterList: async (req, res) => {
+        const printer = require('pdf-to-printer');
+        try {
+            const printers = await printer.getPrinters();
+            res.json(printers);
+        } catch (err) {
+            res.status(500).json({ error: 'Gagal mengambil daftar printer' });
+        }
+    },
+
+    getDefaultPrinter: (req, res) => {
+        try {
+            if (!fs.existsSync(configPath)) return res.json({ defaultPrinter: null });
+
+            const configRaw = fs.readFileSync(configPath, 'utf-8');
+            const config = JSON.parse(configRaw);
+
+            res.json({ defaultPrinter: config.defaultPrinter || null });
+        } catch (err) {
+            console.error('Gagal baca printer default:', err.message);
+            res.status(500).json({ error: 'Gagal membaca printer default' });
+        }
+    },
+
+    setDefaultPrinter: (req, res) => {
+        const { printerName } = req.body;
+        if (!printerName) return res.status(400).json({ error: 'Nama printer tidak boleh kosong' });
+
+        const config = { defaultPrinter: printerName };
+        try {
+            fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+            res.json({ message: 'Printer default berhasil disimpan' });
+        } catch (err) {
+            res.status(500).json({ error: 'Gagal menyimpan printer default' });
+        }
+    },
+
+    // 2️⃣ Cetak nota ke printer tertentu
+    printSalesReceipt: async (req, res) => {
+        const { id } = req.params;
+        const { printer: printerName } = req.body;
+
+        try {
+            const { transaction, orders, payments } = await salesModel.getSalesReceiptData(id);
+            if (!transaction) return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
+
+            const fileName = `nota-${id}.pdf`;
+            const filePath = path.join(__dirname, `../../temp/${fileName}`);
+
+            const doc = new PDFDocument({ size: [684, 792], margin: 30 });
+            const stream = fs.createWriteStream(filePath);
+            doc.pipe(stream);
+
+            // ✏️ Header nota
+            doc.fontSize(12).text('TOKO UWAIS TELUR', { align: 'center' });
+            doc.fontSize(9)
+                .text(`No Transaksi: ${transaction.sales_transaction_id}`)
+                .text(`Tanggal: ${transaction.transaction_time}`)
+                .text(`Pelanggan: ${transaction.customer_name}`)
+                .text(`Alamat: ${transaction.address}`)
+                .text(`Admin: ${transaction.admin_name}`)
+                .text(`Status: ${transaction.status}`)
+                .moveDown();
+
+            // ✏️ Daftar pesanan
+            doc.text('--- Rincian Pesanan ---');
+            orders.forEach((item, i) => {
+                doc.text(`${i + 1}. ${item.item_name} x ${item.quantity} ${item.unit} = Rp${item.subtotal_price.toLocaleString('id-ID')}`);
+            });
+
+            const total = orders.reduce((sum, o) => sum + o.subtotal_price, 0);
+            doc.moveDown().text(`Total Tagihan: Rp${total.toLocaleString('id-ID')}`, { align: 'right' });
+
+            if (payments.length) {
+                doc.moveDown().text('--- Pembayaran ---');
+                payments.forEach((p, i) => {
+                    doc.text(`${i + 1}. Rp${p.payment_amount.toLocaleString('id-ID')} (${p.payment_method})`);
+                });
+            }
+
+            doc.moveDown().text('Terima kasih!', { align: 'center' });
+            doc.end();
+
+            stream.on('finish', async () => {
+                try {
+                    await printer.print(filePath, { printer: printerName });
+                    return res.json({ message: `Nota berhasil dikirim ke printer "${printerName}".` });
+                } catch (err) {
+                    console.error('❌ Gagal mencetak ke printer:', err.message || err);
+
+                    // 🧹 Hapus file PDF jika terjadi error saat print
+                    if (fs.existsSync(filePath)) {
+                        try {
+                            fs.unlinkSync(filePath);
+                            console.log('🗑️ File PDF dibersihkan setelah gagal print.');
+                        } catch (deleteErr) {
+                            console.warn('⚠️ Gagal menghapus file PDF:', deleteErr.message);
+                        }
+                    }
+
+                    return res.status(500).json({
+                        error: `Gagal mencetak ke printer "${printerName}". Kemungkinan dibatalkan oleh pengguna atau printer tidak tersedia.`
+                    });
+                }
+            });
+
+        } catch (err) {
+            console.error('Gagal mencetak nota:', err);
+            res.status(500).json({ error: 'Gagal mencetak nota' });
+        }
+    },
 
 };
 

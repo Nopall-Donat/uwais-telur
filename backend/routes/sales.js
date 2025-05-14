@@ -42,6 +42,15 @@ router.get('/payments/:id', ensureAuthenticated, salesController.getSalesPayment
 
 router.get('/generate/order-id', ensureAuthenticated, salesController.generateNewOrderId);
 router.get('/backup', ensureAuthenticated, salesController.backupSalesToExcel);
+
+// ------------------------
+// 🧾 STRUK
+// ------------------------
+router.get('/printer-list', ensureAuthenticated, salesController.getPrinterList);
 router.get('/nota/:id', ensureAuthenticated, salesController.viewSalesReceipt);
+router.post('/cetak-nota/:id', ensureAuthenticated, salesController.printSalesReceipt);
+router.get('/printer-default', ensureAuthenticated, salesController.getDefaultPrinter);
+router.post('/printer-default', ensureAuthenticated, salesController.setDefaultPrinter);
+
 
 module.exports = router;

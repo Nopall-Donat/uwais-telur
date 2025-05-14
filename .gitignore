@@ -48,5 +48,9 @@ frontend/assets/*
 .npm/
 .yarn/
 
+# Temporary files
+temp/
+
 # System files
 Thumbs.db
+
