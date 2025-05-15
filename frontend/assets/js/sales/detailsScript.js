@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 🖨️ Saat tombol cetak diklik
     btnOpenCetak?.addEventListener('click', async () => {
-        iframeNota.src = `/nota/${transactionId}`;
+        iframeNota.src = `/nota-preview/${transactionId}`;
 
         let defaultPrinter = null;
 

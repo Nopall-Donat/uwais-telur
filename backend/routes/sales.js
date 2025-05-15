@@ -51,6 +51,6 @@ router.get('/nota/:id', ensureAuthenticated, salesController.viewSalesReceipt);
 router.post('/cetak-nota/:id', ensureAuthenticated, salesController.printSalesReceipt);
 router.get('/printer-default', ensureAuthenticated, salesController.getDefaultPrinter);
 router.post('/printer-default', ensureAuthenticated, salesController.setDefaultPrinter);
-
+router.get('/nota-preview/:id', ensureAuthenticated, salesController.previewSalesReceipt);
 
 module.exports = router;

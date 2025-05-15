@@ -482,6 +482,26 @@ const salesController = {
         }
     },
 
+    previewSalesReceipt: async (req, res) => {
+        const { id } = req.params;
+        const fileName = `nota-${id}.pdf`;
+        const filePath = path.join(__dirname, `../../temp/${fileName}`);
+
+        try {
+            // ✅ Periksa apakah file sudah ada
+            if (!fs.existsSync(filePath)) {
+                return res.status(404).send('File nota belum tersedia.');
+            }
+
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'inline; filename="' + fileName + '"');
+            fs.createReadStream(filePath).pipe(res);
+        } catch (err) {
+            console.error('Gagal menampilkan preview nota:', err);
+            res.status(500).send('Gagal menampilkan preview nota.');
+        }
+    },
+
     getPrinterList: async (req, res) => {
         const printer = require('pdf-to-printer');
         try {
@@ -519,78 +539,103 @@ const salesController = {
         }
     },
 
-    // 2️⃣ Cetak nota ke printer tertentu
+    // 2️⃣ Cetak nota thermal ke printer tertentu
     printSalesReceipt: async (req, res) => {
         const { id } = req.params;
         const { printer: printerName } = req.body;
 
         try {
-            const { transaction, orders, payments } = await salesModel.getSalesReceiptData(id);
+            const { transaction, orders } = await salesModel.getSalesReceiptData(id);
             if (!transaction) return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
 
-            const fileName = `nota-${id}.pdf`;
+            const fileName = `nota-thermal-${id}.pdf`;
             const filePath = path.join(__dirname, `../../temp/${fileName}`);
 
-            const doc = new PDFDocument({ size: [684, 792], margin: 30 });
+            // ✅ Ukuran disesuaikan dengan 100x140mm (sekitar 283x396 pt)
+            const doc = new PDFDocument({ size: [283, 396], margin: 10 });
             const stream = fs.createWriteStream(filePath);
             doc.pipe(stream);
 
-            // ✏️ Header nota
-            doc.fontSize(12).text('TOKO UWAIS TELUR', { align: 'center' });
-            doc.fontSize(9)
-                .text(`No Transaksi: ${transaction.sales_transaction_id}`)
-                .text(`Tanggal: ${transaction.transaction_time}`)
-                .text(`Pelanggan: ${transaction.customer_name}`)
-                .text(`Alamat: ${transaction.address}`)
-                .text(`Admin: ${transaction.admin_name}`)
-                .text(`Status: ${transaction.status}`)
-                .moveDown();
+            // 🔰 LOGO & INFO TOKO
+            doc.image(path.join(__dirname, '../../frontend/assets/img/logo.png'), 12, 12, { width: 30 });
 
-            // ✏️ Daftar pesanan
-            doc.text('--- Rincian Pesanan ---');
+            doc.font('Helvetica-Bold').fontSize(11).text('FAKTUR PENJUALAN', 50, 12);
+            doc.fontSize(10).text('TOKO UWAIS TELUR', 50);
+            doc.font('Helvetica').fontSize(9);
+            doc.text('KAMPUNG SULIMAN NO. 70');
+            doc.text('DESA MEKARSARI');
+            doc.text('082125693390');
+
+            // 👤 INFO PELANGGAN
+            doc.fontSize(9).moveDown(1);
+            doc.text(`Pelanggan: ${transaction.customer_name}`, 12);
+            doc.text(`Alamat   : ${transaction.address}`, 12);
+
+            // 📏 GARIS PEMBATAS
+            doc.moveDown(0.6);
+            doc.moveTo(12, doc.y).lineTo(270, doc.y).stroke();
+
+            // 📄 HEADER TABEL
+            const tableTop = doc.y + 6;
+            const rowHeight = 18;
+
+            doc.font('Helvetica-Bold').fontSize(9);
+            doc.text('No', 14, tableTop);
+            doc.text('Item', 40, tableTop);
+            doc.text('Jml', 130, tableTop);
+            doc.text('Harga', 170, tableTop);
+            doc.text('Total', 220, tableTop);
+
+            doc.moveTo(12, tableTop + 12).lineTo(270, tableTop + 12).stroke();
+            doc.font('Helvetica').fontSize(9);
+
+            // 🧮 ISI TABEL
+            let total = 0;
+            let yPos = tableTop + 16;
+
             orders.forEach((item, i) => {
-                doc.text(`${i + 1}. ${item.item_name} x ${item.quantity} ${item.unit} = Rp${item.subtotal_price.toLocaleString('id-ID')}`);
+                const harga = item.unit_price || 0;
+                const subtotal = item.subtotal_price || 0;
+                total += subtotal;
+
+                doc.text(`${i + 1}`, 14, yPos);
+                doc.text(item.item_name, 40, yPos);
+                doc.text(`${item.quantity}`, 130, yPos);
+                doc.text(`Rp ${harga.toLocaleString('id-ID')}`, 170, yPos);
+                doc.text(`Rp ${subtotal.toLocaleString('id-ID')}`, 220, yPos);
+
+                yPos += rowHeight;
             });
 
-            const total = orders.reduce((sum, o) => sum + o.subtotal_price, 0);
-            doc.moveDown().text(`Total Tagihan: Rp${total.toLocaleString('id-ID')}`, { align: 'right' });
+            // 🧾 TOTAL
+            doc.moveTo(12, yPos + 4).lineTo(270, yPos + 4).stroke();
+            doc.font('Helvetica-Bold');
+            doc.text('Total', 170, yPos + 8);
+            doc.text(`Rp ${total.toLocaleString('id-ID')}`, 220, yPos + 8);
 
-            if (payments.length) {
-                doc.moveDown().text('--- Pembayaran ---');
-                payments.forEach((p, i) => {
-                    doc.text(`${i + 1}. Rp${p.payment_amount.toLocaleString('id-ID')} (${p.payment_method})`);
-                });
-            }
-
-            doc.moveDown().text('Terima kasih!', { align: 'center' });
             doc.end();
 
+            // 🖨️ CETAK
             stream.on('finish', async () => {
                 try {
-                    await printer.print(filePath, { printer: printerName });
-                    return res.json({ message: `Nota berhasil dikirim ke printer "${printerName}".` });
-                } catch (err) {
-                    console.error('❌ Gagal mencetak ke printer:', err.message || err);
-
-                    // 🧹 Hapus file PDF jika terjadi error saat print
-                    if (fs.existsSync(filePath)) {
-                        try {
-                            fs.unlinkSync(filePath);
-                            console.log('🗑️ File PDF dibersihkan setelah gagal print.');
-                        } catch (deleteErr) {
-                            console.warn('⚠️ Gagal menghapus file PDF:', deleteErr.message);
-                        }
-                    }
-
-                    return res.status(500).json({
-                        error: `Gagal mencetak ke printer "${printerName}". Kemungkinan dibatalkan oleh pengguna atau printer tidak tersedia.`
+                    await printer.print(filePath, {
+                        printer: printerName,
+                        win32: [
+                            '-print-settings "fit"', // scaling agar tidak mengecil
+                            '-silent'
+                        ]
                     });
+                    return res.json({ message: `Nota berhasil dicetak ke printer "${printerName}".` });
+                } catch (err) {
+                    console.error('❌ Gagal cetak thermal:', err.message);
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                    return res.status(500).json({ error: 'Gagal mencetak nota thermal.' });
                 }
             });
 
         } catch (err) {
-            console.error('Gagal mencetak nota:', err);
-            res.status(500).json({ error: 'Gagal mencetak nota' });
+            console.error('Gagal cetak thermal:', err);
+            res.status(500).json({ error: 'Gagal mencetak nota thermal.' });
         }
     },
 
