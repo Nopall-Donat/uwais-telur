@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else nameInput.classList.add('is-valid');
 
             const phoneVal = phoneInput.value.trim();
-            if (!/^\d{10,13}$/.test(phoneVal)) {
+            if (phoneVal && !/^\d{10,13}$/.test(phoneVal)) {
                 phoneInput.classList.add('is-invalid');
                 isValid = false;
             } else phoneInput.classList.add('is-valid');
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!isValid) {
                 e.preventDefault();
-                formAlert.innerText = 'Semua field wajib diisi dengan benar!';
+                formAlert.innerText = 'Nama dan alamat wajib diisi. Nomor HP opsional, tapi harus 10-13 digit jika diisi.';
                 formAlert.classList.remove('d-none');
             }
         });

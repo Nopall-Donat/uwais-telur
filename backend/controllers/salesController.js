@@ -15,6 +15,79 @@ const path = require('path');
 const configPath = path.join(__dirname, '../../config/printer-config.json');
 const printer = require('pdf-to-printer');
 
+async function generateSalesPDF(id, { preview = false } = {}) {
+    const { transaction, orders } = await salesModel.getSalesReceiptData(id);
+    if (!transaction) throw new Error('Transaksi tidak ditemukan.');
+
+    const fileName = preview ? `nota-${id}.pdf` : `nota-thermal-${id}.pdf`;
+    const filePath = path.join(__dirname, `../../temp/${fileName}`);
+
+    return new Promise((resolve, reject) => {
+        const doc = new PDFDocument({ size: [283, 396], margin: 10 });
+        const stream = fs.createWriteStream(filePath);
+        doc.pipe(stream);
+
+        try {
+            // 🧾 Header
+            doc.image(path.join(__dirname, '../../frontend/assets/img/logo.png'), 10, 10, { width: 30 });
+            let y = 10;
+            doc.font('Helvetica-Bold').fontSize(11).text('FAKTUR PENJUALAN', 50, y);
+            doc.fontSize(10).text('TOKO UWAIS TELUR', 50);
+            doc.font('Helvetica').fontSize(9);
+            doc.text('KAMPUNG SULIMAN NO. 70');
+            doc.text('DESA MEKARSARI');
+            doc.text('082125693390');
+
+            doc.moveDown(0.5);
+            doc.fontSize(9).text(`Pelanggan: ${transaction.customer_name}`);
+            doc.text(`Alamat   : ${transaction.address}`);
+
+            doc.moveDown(0.5);
+            doc.moveTo(10, doc.y).lineTo(270, doc.y).stroke();
+
+            // 📦 Tabel
+            const tableTop = doc.y + 6;
+            const rowHeight = 18;
+            doc.font('Helvetica-Bold').fontSize(9);
+            doc.text('No', 12, tableTop);
+            doc.text('Item', 40, tableTop);
+            doc.text('Jml', 120, tableTop);
+            doc.text('Harga', 160, tableTop);
+            doc.text('Total', 210, tableTop);
+
+            doc.moveTo(10, tableTop + 12).lineTo(270, tableTop + 12).stroke();
+            doc.font('Helvetica').fontSize(9);
+
+            let total = 0;
+            let yPos = tableTop + 16;
+            orders.forEach((item, i) => {
+                const harga = item.unit_price || 0;
+                const subtotal = item.subtotal_price || 0;
+                total += subtotal;
+
+                doc.text(`${i + 1}`, 12, yPos);
+                doc.text(item.item_name, 40, yPos, { width: 70 });
+                doc.text(`${item.quantity}`, 120, yPos);
+                doc.text(`Rp ${harga.toLocaleString('id-ID')}`, 160, yPos);
+                doc.text(`Rp ${subtotal.toLocaleString('id-ID')}`, 210, yPos);
+
+                yPos += rowHeight;
+            });
+
+            doc.moveTo(10, yPos + 4).lineTo(270, yPos + 4).stroke();
+            doc.font('Helvetica-Bold');
+            doc.text('Total', 160, yPos + 8);
+            doc.text(`Rp ${total.toLocaleString('id-ID')}`, 210, yPos + 8);
+
+            doc.end();
+            stream.on('finish', () => resolve(filePath));
+            stream.on('error', reject);
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
 const salesController = {
     // =========================
     // Halaman Utama Penjualan
@@ -488,16 +561,15 @@ const salesController = {
         const filePath = path.join(__dirname, `../../temp/${fileName}`);
 
         try {
-            // ✅ Periksa apakah file sudah ada
             if (!fs.existsSync(filePath)) {
-                return res.status(404).send('File nota belum tersedia.');
+                await generateSalesPDF(id, { preview: true });
             }
 
             res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', 'inline; filename="' + fileName + '"');
+            res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
             fs.createReadStream(filePath).pipe(res);
         } catch (err) {
-            console.error('Gagal menampilkan preview nota:', err);
+            console.error('previewSalesReceipt error:', err);
             res.status(500).send('Gagal menampilkan preview nota.');
         }
     },
@@ -539,103 +611,24 @@ const salesController = {
         }
     },
 
-    // 2️⃣ Cetak nota thermal ke printer tertentu
     printSalesReceipt: async (req, res) => {
         const { id } = req.params;
         const { printer: printerName } = req.body;
 
         try {
-            const { transaction, orders } = await salesModel.getSalesReceiptData(id);
-            if (!transaction) return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
+            const filePath = await generateSalesPDF(id, { preview: false });
 
-            const fileName = `nota-thermal-${id}.pdf`;
-            const filePath = path.join(__dirname, `../../temp/${fileName}`);
-
-            // ✅ Ukuran disesuaikan dengan 100x140mm (sekitar 283x396 pt)
-            const doc = new PDFDocument({ size: [283, 396], margin: 10 });
-            const stream = fs.createWriteStream(filePath);
-            doc.pipe(stream);
-
-            // 🔰 LOGO & INFO TOKO
-            doc.image(path.join(__dirname, '../../frontend/assets/img/logo.png'), 12, 12, { width: 30 });
-
-            doc.font('Helvetica-Bold').fontSize(11).text('FAKTUR PENJUALAN', 50, 12);
-            doc.fontSize(10).text('TOKO UWAIS TELUR', 50);
-            doc.font('Helvetica').fontSize(9);
-            doc.text('KAMPUNG SULIMAN NO. 70');
-            doc.text('DESA MEKARSARI');
-            doc.text('082125693390');
-
-            // 👤 INFO PELANGGAN
-            doc.fontSize(9).moveDown(1);
-            doc.text(`Pelanggan: ${transaction.customer_name}`, 12);
-            doc.text(`Alamat   : ${transaction.address}`, 12);
-
-            // 📏 GARIS PEMBATAS
-            doc.moveDown(0.6);
-            doc.moveTo(12, doc.y).lineTo(270, doc.y).stroke();
-
-            // 📄 HEADER TABEL
-            const tableTop = doc.y + 6;
-            const rowHeight = 18;
-
-            doc.font('Helvetica-Bold').fontSize(9);
-            doc.text('No', 14, tableTop);
-            doc.text('Item', 40, tableTop);
-            doc.text('Jml', 130, tableTop);
-            doc.text('Harga', 170, tableTop);
-            doc.text('Total', 220, tableTop);
-
-            doc.moveTo(12, tableTop + 12).lineTo(270, tableTop + 12).stroke();
-            doc.font('Helvetica').fontSize(9);
-
-            // 🧮 ISI TABEL
-            let total = 0;
-            let yPos = tableTop + 16;
-
-            orders.forEach((item, i) => {
-                const harga = item.unit_price || 0;
-                const subtotal = item.subtotal_price || 0;
-                total += subtotal;
-
-                doc.text(`${i + 1}`, 14, yPos);
-                doc.text(item.item_name, 40, yPos);
-                doc.text(`${item.quantity}`, 130, yPos);
-                doc.text(`Rp ${harga.toLocaleString('id-ID')}`, 170, yPos);
-                doc.text(`Rp ${subtotal.toLocaleString('id-ID')}`, 220, yPos);
-
-                yPos += rowHeight;
+            await printer.print(filePath, {
+                printer: printerName,
+                win32: ['-print-settings "fit"', '-silent']
             });
 
-            // 🧾 TOTAL
-            doc.moveTo(12, yPos + 4).lineTo(270, yPos + 4).stroke();
-            doc.font('Helvetica-Bold');
-            doc.text('Total', 170, yPos + 8);
-            doc.text(`Rp ${total.toLocaleString('id-ID')}`, 220, yPos + 8);
-
-            doc.end();
-
-            // 🖨️ CETAK
-            stream.on('finish', async () => {
-                try {
-                    await printer.print(filePath, {
-                        printer: printerName,
-                        win32: [
-                            '-print-settings "fit"', // scaling agar tidak mengecil
-                            '-silent'
-                        ]
-                    });
-                    return res.json({ message: `Nota berhasil dicetak ke printer "${printerName}".` });
-                } catch (err) {
-                    console.error('❌ Gagal cetak thermal:', err.message);
-                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-                    return res.status(500).json({ error: 'Gagal mencetak nota thermal.' });
-                }
-            });
+            return res.json({ message: `Nota berhasil dicetak ke printer "${printerName}".` });
 
         } catch (err) {
-            console.error('Gagal cetak thermal:', err);
-            res.status(500).json({ error: 'Gagal mencetak nota thermal.' });
+            console.error('❌ Gagal cetak thermal:', err.message);
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            return res.status(500).json({ error: 'Gagal mencetak nota thermal.' });
         }
     },
 

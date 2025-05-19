@@ -7,7 +7,7 @@ const customersController = {
             const customers = await customerModel.getAllCustomer();
             const message = req.session.message || null;
             delete req.session.message;
-    
+
             res.render('customers/index', {
                 title: 'Data Pelanggan',
                 customers,
@@ -20,7 +20,7 @@ const customersController = {
         } catch (err) {
             next(err);
         }
-    },    
+    },
 
     getAllCustomer: async (req, res, next) => {
         try {
@@ -66,7 +66,9 @@ const customersController = {
             const { id } = req.params;
             const updatedAt = getCurrentTimestampWIB();
 
-            await customerModel.updateByIdCustomer(id, name, phone_number, address, updatedAt);
+            const finalPhone = phone_number?.trim() || '-';
+
+            await customerModel.updateByIdCustomer(id, name, finalPhone, address, updatedAt);
 
             req.session.message = { type: 'success', text: 'Berhasil memperbarui data pelanggan!' };
             res.redirect('/customers');
@@ -94,12 +96,14 @@ const customersController = {
             const orderNumber = String(customersToday.length + 1).padStart(2, '0');
             const customerId = `P${datePart}${orderNumber}`;
 
+            const finalPhone = phone_number?.trim() || '-';
+
             const isExist = await customerModel.getByIdCustomer(customerId);
             if (isExist) {
                 throw new Error('Customer ID already exists, please try again.');
             }
 
-            await customerModel.createCustomer(customerId, name, phone_number, address, createdAt, updatedAt);
+            await customerModel.createCustomer(customerId, name, finalPhone, address, createdAt, updatedAt);
 
             req.session.message = { type: 'success', text: 'Berhasil menambahkan pelanggan!' };
             res.redirect('/customers');

@@ -1,10 +1,10 @@
 // ======================
-// 🔁 Modal Toggle (Pilih ↔ Tambah Suplier)
+// 🔁 Modal Toggle (Pilih ↔ Tambah Supplier)
 // ======================
 document.addEventListener('DOMContentLoaded', () => {
-    const btnTambah = document.getElementById('btnTambahSuplier');
-    const modalPilih = document.getElementById('modalPilihSuplier');
-    const modalTambahEl = document.getElementById('modalTambahSuplier');
+    const btnTambah = document.getElementById('btnTambahSupplier');
+    const modalPilih = document.getElementById('modalPilihSupplier');
+    const modalTambahEl = document.getElementById('modalTambahSupplier');
 
     if (btnTambah && modalPilih && modalTambahEl) {
         const modalTambahInstance = new bootstrap.Modal(modalTambahEl);
@@ -25,9 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // ✅ Validasi Modal Tambah Supplier
 // ======================
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('suplierForm');
+    const form = document.getElementById('supplierForm');
     const formAlert = document.getElementById('formAlert');
-    const modalEl = document.getElementById('modalTambahSuplier');
+    const modalEl = document.getElementById('modalTambahSupplier');
     if (form && formAlert && modalEl) {
         form.addEventListener('submit', function (e) {
             let isValid = true;
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
             } else nameInput.classList.add('is-valid');
 
             const phoneVal = phoneInput.value.trim();
-            if (!/^\d{10,13}$/.test(phoneVal)) {
+            if (phoneVal && !/^\d{10,13}$/.test(phoneVal)) {
                 phoneInput.classList.add('is-invalid');
                 isValid = false;
             } else phoneInput.classList.add('is-valid');
@@ -75,13 +75,13 @@ document.addEventListener('DOMContentLoaded', function () {
 // 📌 Inisialisasi Select2
 // ======================
 document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.getElementById('modalPilihSuplier');
+    const modal = document.getElementById('modalPilihSupplier');
     if (modal) {
         modal.addEventListener('shown.bs.modal', function () {
-            const $select = $('#suplier_id');
+            const $select = $('#supplier_id');
             if (!$select.hasClass("select2-hidden-accessible")) {
                 $select.select2({
-                    dropdownParent: $('#modalPilihSuplier'),
+                    dropdownParent: $('#modalPilihSupplier'),
                     placeholder: 'Pilih suplier...',
                     allowClear: true,
                     width: '100%'

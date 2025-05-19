@@ -51,7 +51,7 @@
                                                 <label for="phone_number" class="form-label">Nomor Telepon</label>
                                                 <input type="tel" id="phone_number" name="phone_number"
                                                     class="form-control" value="<%= supplier.phone_number %>"
-                                                    pattern="^\d{10,13}$" required>
+                                                    pattern="^$|^[-\d]{1,13}$">
                                             </div>
 
                                             <div class="col-md-12">

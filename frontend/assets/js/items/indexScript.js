@@ -122,3 +122,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('tambahBaru');
+
+    if (modal) {
+        modal.addEventListener('shown.bs.modal', function () {
+            const $select = $('#supplier_id');
+            if (!$select.hasClass("select2-hidden-accessible")) {
+                $select.select2({
+                    dropdownParent: $('#tambahBaru'),
+                    placeholder: 'Pilih supplier...',
+                    allowClear: true,
+                    width: '100%'
+                });
+            }
+        });
+    }
+});

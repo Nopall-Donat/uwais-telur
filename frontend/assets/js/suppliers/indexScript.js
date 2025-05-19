@@ -36,10 +36,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const phoneVal = phoneInput.value.trim();
-            if (!/^\d{10,13}$/.test(phoneVal)) {
+            if (phoneVal && !/^\d{10,13}$/.test(phoneVal)) {
                 phoneInput.classList.add('is-invalid');
                 isValid = false;
-            } else {
+            }
+            else {
                 phoneInput.classList.add('is-valid');
             }
 
@@ -67,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             formAlert.classList.add('d-none');
         });
-    }   
+    }
 });
 
 // ✅ Tooltip Bootstrap

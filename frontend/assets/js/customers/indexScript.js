@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const phoneVal = phoneInput.value.trim();
-            if (!/^\d{10,13}$/.test(phoneVal)) {
+            if (phoneVal && !/^\d{10,13}$/.test(phoneVal)) {
                 phoneInput.classList.add('is-invalid');
                 isValid = false;
             } else {
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!isValid) {
                 e.preventDefault();
-                formAlert.innerText = 'Semua field wajib diisi dengan benar!';
+                formAlert.innerText = 'Nama dan alamat wajib diisi. Nomor HP opsional, tapi harus 10-13 digit jika diisi.';
                 formAlert.classList.remove('d-none');
             }
         });
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             formAlert.classList.add('d-none');
         });
-    }   
+    }
 });
 
 // ✅ Tooltip Bootstrap

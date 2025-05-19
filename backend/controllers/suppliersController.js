@@ -55,7 +55,8 @@ const suppliersController = {
             const { id } = req.params;
             const updatedAt = getCurrentTimestampWIB();
 
-            await supplierModel.updateByIdSupplier(id, name, phone_number, address, updatedAt);
+            const finalPhone = phone_number?.trim() || '-';
+            await supplierModel.updateByIdSupplier(id, name, finalPhone, address, updatedAt);
 
             req.session.message = { type: 'success', text: 'Berhasil memperbarui data pemasok!' };
             res.redirect('/suppliers');
@@ -87,8 +88,9 @@ const suppliersController = {
             if (isExist) {
                 throw new Error('Supplier ID already exists, please try again.');
             }
+            const finalPhone = phone_number?.trim() || '-';
 
-            await supplierModel.createSupplier(supplierId, name, phone_number, address, createdAt, updatedAt);
+            await supplierModel.createSupplier(supplierId, name, finalPhone, address, createdAt, updatedAt);
 
             req.session.message = { type: 'success', text: 'Berhasil menambahkan pemasok!' };
             res.redirect('/suppliers');
