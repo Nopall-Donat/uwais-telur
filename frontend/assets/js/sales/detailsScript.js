@@ -332,6 +332,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateTotalAmount();
                 bootstrap.Modal.getInstance(modalKonfirmasiEl)?.hide();
 
+                try {
+                    // ✅ PRE-GENERATE NOTA PDF
+                    await fetch(`/generate-preview/${transactionId}`);
+                    console.log('📄 Nota preview berhasil digenerate.');
+                } catch (err) {
+                    console.warn('❌ Gagal pre-generate nota preview:', err);
+                }
+
                 setTimeout(() => {
                     window.location.href = `/details/${transactionId}`;
                 }, 1000);
@@ -522,7 +530,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const printerSelect = document.getElementById('printerSelect');
     const printerStatus = document.getElementById('printerStatus');
 
-    // ✅ Ambil transactionId dari <script id="meta-detail">
     let transactionId = '';
     try {
         const meta = document.getElementById('meta-detail');
@@ -533,13 +540,22 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // 🖨️ Saat tombol cetak diklik
     btnOpenCetak?.addEventListener('click', async () => {
-        iframeNota.src = `/nota-preview/${transactionId}`;
+        modalCetak.show();
 
+        // Reset dan tampilkan loading
+        document.querySelector('.preview-loading').style.display = 'block';
+        iframeNota.style.display = 'none';
+
+        // ✅ Gunakan URL langsung (tanpa blob)
+        iframeNota.src = `/nota-pdf/${transactionId}.pdf`;
+        iframeNota.onload = () => {
+            document.querySelector('.preview-loading').style.display = 'none';
+            iframeNota.style.display = 'block';
+        };
+
+        // 🔽 Ambil default printer
         let defaultPrinter = null;
-
-        // ⬅️ Ambil default printer dulu
         try {
             const res = await fetch('/printer-default');
             const data = await res.json();
@@ -550,7 +566,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.warn('❌ Gagal ambil default printer:', err);
         }
 
-        // ⬇️ Ambil daftar printer
+        // 🔽 Ambil daftar printer aktif
         try {
             const res = await fetch('/printer-list');
             const printers = await res.json();
@@ -588,26 +604,23 @@ document.addEventListener('DOMContentLoaded', function () {
             printerSelect.innerHTML = '<option disabled selected>Gagal mengambil daftar printer</option>';
             printerStatus.textContent = '❌ Tidak dapat menghubungi server printer.';
         }
-
-        modalCetak.show();
     });
 
-
-    // ✅ Tombol cetak final ditekan
+    // ✅ Tombol Cetak Sekarang
     btnCetakFinal?.addEventListener('click', async () => {
         const printerName = printerSelect.value;
         if (!printerName) return alert('Silakan pilih printer terlebih dahulu.');
 
         // Simpan default printer jika dicentang
-        await fetch('/printer-default', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ printerName })
-        });
-
-        // ✅ update variable lokal
-        window._cachedDefaultPrinter = printerName;
-
+        const setAsDefault = document.getElementById('setAsDefaultPrinter')?.checked;
+        if (setAsDefault) {
+            await fetch('/printer-default', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ printerName })
+            });
+            window._cachedDefaultPrinter = printerName;
+        }
 
         try {
             const res = await fetch(`/cetak-nota/${transactionId}`, {
@@ -622,16 +635,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert(result.message || 'Nota berhasil dicetak.');
                 modalCetak.hide();
                 setTimeout(() => {
-                    btnOpenCetak.click(); // buka ulang modal untuk refresh printer default
+                    btnOpenCetak.click(); // Buka ulang modal untuk refresh
                 }, 100);
-
             } else {
                 alert(result.error || 'Gagal mencetak nota.');
             }
         } catch (err) {
             console.error('❌ Error saat cetak:', err);
-            alert('Gagal mencetak. Mungkin kamu membatalkan dialog printer atau printer tidak tersedia.');
+            alert('Gagal mencetak. Mungkin printer tidak tersedia atau server tidak respons.');
         }
     });
-
 });

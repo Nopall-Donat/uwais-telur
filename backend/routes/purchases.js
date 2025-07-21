@@ -42,6 +42,18 @@ router.get('/payments/:id', ensureAuthenticated, purchasesController.getPurchase
 
 router.get('/generate/order-id', ensureAuthenticated, purchasesController.generateNewPurchaseOrderId);
 router.get('/backup', ensureAuthenticated, purchasesController.backupPurchasesToExcel);
-router.get('/nota/:id', ensureAuthenticated, purchasesController.viewPurchaseReceipt);
+
+// ------------------------
+// 🧾 STRUK / CETAK NOTA
+// ------------------------
+
+router.get('/printer-list', ensureAuthenticated, purchasesController.getPrinterList);
+router.post('/cetak-nota/:id', ensureAuthenticated, purchasesController.printPurchaseReceipt);
+router.get('/printer-default', ensureAuthenticated, purchasesController.getDefaultPrinter);
+router.post('/printer-default', ensureAuthenticated, purchasesController.setDefaultPrinter);
+router.get('/nota-preview/:id', ensureAuthenticated, purchasesController.previewPurchaseReceipt);
+
+router.get('/nota-pdf/:id.pdf', ensureAuthenticated, purchasesController.previewPurchaseReceipt);
+
 
 module.exports = router;

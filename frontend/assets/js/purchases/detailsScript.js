@@ -500,3 +500,131 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ======================
+// 🖨️ Modul Cetak Nota Pembelian
+// ======================
+document.addEventListener('DOMContentLoaded', function () {
+    const btnOpenCetak = document.getElementById('btnOpenCetakNota');
+    const btnCetakFinal = document.getElementById('btnCetakNotaFinal');
+    const modalCetak = new bootstrap.Modal(document.getElementById('modalCetakNota'));
+    const iframeNota = document.getElementById('notaPreviewFrame');
+    const printerSelect = document.getElementById('printerSelect');
+    const printerStatus = document.getElementById('printerStatus');
+
+    let transactionId = '';
+    try {
+        const meta = document.getElementById('meta-detail');
+        const parsed = JSON.parse(meta.textContent);
+        transactionId = parsed.transactionId;
+    } catch (err) {
+        console.error('❌ Gagal mengambil transaction ID dari #meta-detail');
+        return;
+    }
+
+    btnOpenCetak?.addEventListener('click', async () => {
+        modalCetak.show();
+
+        // Reset dan tampilkan loading
+        document.querySelector('.preview-loading').style.display = 'block';
+        iframeNota.style.display = 'none';
+
+        // ✅ Tampilkan preview dari file PDF
+        iframeNota.src = `/purchases/nota-pdf/${transactionId}.pdf`;
+        iframeNota.onload = () => {
+            document.querySelector('.preview-loading').style.display = 'none';
+            iframeNota.style.display = 'block';
+        };
+
+        // 🔽 Ambil printer default
+        let defaultPrinter = null;
+        try {
+            const res = await fetch('/printer-default');
+            const data = await res.json();
+            defaultPrinter = data.defaultPrinter || null;
+            window._cachedDefaultPrinter = defaultPrinter;
+            console.log('🖨️ Printer default:', defaultPrinter);
+        } catch (err) {
+            console.warn('❌ Gagal ambil default printer:', err);
+        }
+
+        // 🔽 Ambil daftar printer aktif
+        try {
+            const res = await fetch('/printer-list');
+            const printers = await res.json();
+
+            printerSelect.innerHTML = '';
+            let foundDefault = false;
+
+            if (!printers.length) {
+                printerSelect.innerHTML = '<option disabled selected>Tidak ada printer terdeteksi</option>';
+                printerStatus.textContent = '🔌 Periksa koneksi printer.';
+            } else {
+                printers.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    opt.textContent = p.default ? `${p.name} (Default)` : p.name;
+
+                    if (
+                        defaultPrinter &&
+                        p.name.trim().toLowerCase() === defaultPrinter.trim().toLowerCase()
+                    ) {
+                        opt.selected = true;
+                        foundDefault = true;
+                    }
+
+                    printerSelect.appendChild(opt);
+                });
+
+                printerStatus.textContent = foundDefault
+                    ? `🖨️ Printer default "${defaultPrinter}" siap digunakan.`
+                    : defaultPrinter
+                        ? `⚠️ Printer default "${defaultPrinter}" tidak ditemukan.`
+                        : `🖨️ Silakan pilih printer.`;
+            }
+        } catch (err) {
+            printerSelect.innerHTML = '<option disabled selected>Gagal mengambil daftar printer</option>';
+            printerStatus.textContent = '❌ Tidak dapat menghubungi server printer.';
+        }
+    });
+
+    // ✅ Tombol Cetak Final
+    btnCetakFinal?.addEventListener('click', async () => {
+        const printerName = printerSelect.value;
+        if (!printerName) return alert('Silakan pilih printer terlebih dahulu.');
+
+        // Simpan default printer jika dicentang
+        const setAsDefault = document.getElementById('setAsDefaultPrinter')?.checked;
+        if (setAsDefault) {
+            await fetch('/printer-default', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ printerName })
+            });
+            window._cachedDefaultPrinter = printerName;
+        }
+
+        try {
+            const res = await fetch(`/purchases/cetak-nota/${transactionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ printer: printerName })
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                alert(result.message || 'Nota berhasil dicetak.');
+                modalCetak.hide();
+                setTimeout(() => {
+                    btnOpenCetak.click(); // refresh preview & printer list
+                }, 100);
+            } else {
+                alert(result.error || 'Gagal mencetak nota.');
+            }
+        } catch (err) {
+            console.error('❌ Error saat cetak:', err);
+            alert('Gagal mencetak. Mungkin printer tidak tersedia atau server tidak respons.');
+        }
+    });
+});

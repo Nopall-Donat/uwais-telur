@@ -202,9 +202,9 @@
 
                     <!-- Tombol Aksi -->
                     <div class="d-flex justify-content-end gap-2 mb-3">
-                        <a href="/purchases/nota/<%= detail.id %>" target="_blank" class="btn btn-outline-dark">
+                        <button class="btn btn-outline-dark" id="btnOpenCetakNota">
                             <i class="bi bi-printer"></i> Cetak Nota
-                        </a>
+                        </button>
                         <button class="btn btn-outline-danger" data-bs-toggle="modal"
                             data-bs-target="#modalHapusTransaksi">
                             <i class="bi bi-trash3"></i> Hapus Transaksi
@@ -404,6 +404,53 @@
                             </form>
                         </div>
                     </div>
+                    <!-- 🖨️ Modal Preview & Cetak Nota -->
+                    <div class="modal fade" id="modalCetakNota" tabindex="-1">
+                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-dark text-white">
+                                    <h5 class="modal-title">Preview & Cetak Nota</h5>
+                                    <button type="button" class="btn-close btn-close-white"
+                                        data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <!-- Dropdown Printer -->
+                                    <div class="mb-3">
+                                        <label for="printerSelect" class="form-label fw-semibold">Pilih Printer</label>
+                                        <select id="printerSelect" class="form-select">
+                                            <option value="" disabled selected>Memuat daftar printer...</option>
+                                        </select>
+                                        <small id="printerStatus" class="text-muted"></small>
+                                    </div>
+
+                                    <!-- Checkbox: Jadikan sebagai default -->
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="setAsDefaultPrinter">
+                                        <label class="form-check-label" for="setAsDefaultPrinter"
+                                            title="Jika dicentang, printer ini akan selalu digunakan saat mencetak nota.">
+                                            Jadikan sebagai printer default
+                                        </label>
+                                    </div>
+
+                                    <!-- Preview Nota -->
+                                    <div class="border rounded p-2 bg-white" style="height: 600px; overflow: auto;">
+                                        <iframe id="notaPreviewFrame"
+                                            style="display: none; width: 100%; height: 100%; border: none;"></iframe>
+                                        <div class="preview-loading text-muted text-center py-3"
+                                            style="display: block;">
+                                            <i class="bi bi-clock-history me-1"></i> Memuat nota...
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                    <!-- <button class="btn btn-success" id="btnCetakNotaFinal">
+                                        <i class="bi bi-printer-fill me-1"></i> Cetak Sekarang
+                                    </button> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- 🔔 TOAST NOTIFIKASI -->
                     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999">
@@ -416,6 +463,10 @@
                             </div>
                         </div>
                     </div>
+
+                    <script id="meta-detail" type="application/json">
+                        <%- JSON.stringify({ transactionId: detail.id }) %>
+                    </script>
 
                     <!-- JSON Orders Saved -->
                     <script id="saved-orders" type="application/json">
@@ -434,8 +485,8 @@
 
                     <!-- Script Controller -->
                 </main>
-            </body>
-            <%- include('../layout/footer') %>
+    </body>
+    <%- include('../layout/footer') %>
         <script src="/assets/js/purchases/detailsScript.js"></script>
 
 </html>

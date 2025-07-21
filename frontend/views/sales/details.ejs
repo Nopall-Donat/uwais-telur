@@ -447,14 +447,18 @@
                                     <!-- Preview Nota -->
                                     <div class="border rounded p-2 bg-white" style="height: 600px; overflow: auto;">
                                         <iframe id="notaPreviewFrame"
-                                            style="width: 100%; height: 100%; border: none;"></iframe>
+                                            style="display: none; width: 100%; height: 100%; border: none;"></iframe>
+                                        <div class="preview-loading text-muted text-center py-3"
+                                            style="display: block;">
+                                            <i class="bi bi-clock-history me-1"></i> Memuat nota...
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="modal-footer">
                                     <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                    <button class="btn btn-success" id="btnCetakNotaFinal">
+                                    <!-- <button class="btn btn-success" id="btnCetakNotaFinal">
                                         <i class="bi bi-printer-fill me-1"></i> Cetak Sekarang
-                                    </button>
+                                    </button> -->
                                 </div>
                             </div>
                         </div>
@@ -493,6 +497,6 @@
 
     </body>
     <%- include('../layout/footer') %>
-    <script src="/assets/js/sales/detailsScript.js"></script>
+        <script src="/assets/js/sales/detailsScript.js"></script>
 
 </html>

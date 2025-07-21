@@ -310,7 +310,7 @@ module.exports = {
             FROM purchase_orders
             WHERE purchase_transaction_id = ?
         `, [transactionId]);
-    },    
+    },
 
     // ================================
     // PEMBAYARAN TRANSAKSI PEMBELIAN
@@ -506,5 +506,42 @@ module.exports = {
             console.error('purchaseModel.getPurchaseReceiptData error:', err);
             throw err;
         }
-    }
+    },
+
+    // ================================
+    // Cetak Nota Pembelian
+    // ================================
+    getPurchaseReceiptData: async (id) => {
+        try {
+            const db = await dbPromise;
+
+            const transaction = await db.get(`
+            SELECT pt.*, s.name AS supplier_name, s.phone_number, s.address,
+                a.admin_name
+            FROM purchase_transactions pt
+            LEFT JOIN suppliers s ON pt.supplier_id = s.supplier_id
+            LEFT JOIN admins a ON pt.admin_id = a.admin_id
+            WHERE pt.purchase_transaction_id = ?
+        `, [id]);
+
+            const orders = await db.all(`
+            SELECT po.*, i.item_type AS item_name, i.unit
+            FROM purchase_orders po
+            LEFT JOIN items i ON po.item_code = i.item_code
+            WHERE po.purchase_transaction_id = ?
+        `, [id]);
+
+            const payments = await db.all(`
+            SELECT * FROM purchase_payments
+            WHERE purchase_transaction_id = ?
+            ORDER BY payment_time ASC
+        `, [id]);
+
+            return { transaction, orders, payments };
+        } catch (err) {
+            console.error('getPurchaseReceiptData error:', err);
+            throw err;
+        }
+    },
+
 };

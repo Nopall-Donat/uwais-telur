@@ -39,12 +39,12 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
+            frameSrc: ["'self'", "blob:"],
             imgSrc: ["'self'", "data:"],
-            fontSrc: ["'self'", "data:"],
-        },
-    },
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'"]
+        }
+    }
 }));
 
 app.use(morgan('dev'));

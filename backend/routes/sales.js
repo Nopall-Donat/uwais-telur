@@ -47,10 +47,12 @@ router.get('/backup', ensureAuthenticated, salesController.backupSalesToExcel);
 // 🧾 STRUK
 // ------------------------
 router.get('/printer-list', ensureAuthenticated, salesController.getPrinterList);
-router.get('/nota/:id', ensureAuthenticated, salesController.viewSalesReceipt);
 router.post('/cetak-nota/:id', ensureAuthenticated, salesController.printSalesReceipt);
 router.get('/printer-default', ensureAuthenticated, salesController.getDefaultPrinter);
 router.post('/printer-default', ensureAuthenticated, salesController.setDefaultPrinter);
 router.get('/nota-preview/:id', ensureAuthenticated, salesController.previewSalesReceipt);
+router.get('/nota-pdf/:id.pdf', ensureAuthenticated, salesController.previewSalesReceipt);
+
+
 
 module.exports = router;

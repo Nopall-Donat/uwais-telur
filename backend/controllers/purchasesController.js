@@ -1,8 +1,126 @@
 const purchasesModel = require('../models/purchasesModel');
 const suppliersModel = require('../models/suppliersModel');
 const itemsModel = require('../models/itemsModel');
+
 const { getCurrentTimestampWIB } = require('../../utils/time');
+
 const ExcelJS = require('exceljs');
+
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const path = require("path");
+const configPath = path.join(__dirname, "../../config/printer-config.json");
+const printer = require("pdf-to-printer");
+
+async function generatePurchasePDF(id, { preview = false } = {}) {
+    const { transaction, orders } = await purchasesModel.getPurchaseReceiptData(id);
+    if (!transaction) throw new Error('Transaksi tidak ditemukan.');
+
+    const fileName = preview ? `nota-${id}.pdf` : `nota-thermal-${id}.pdf`;
+    const filePath = path.join(__dirname, `../../temp/${fileName}`);
+
+    return new Promise((resolve, reject) => {
+        const doc = new PDFDocument({
+            size: 'A4',
+            layout: 'portrait',
+            margins: { top: 25, left: 25, right: 25, bottom: 25 }
+        });
+
+        const stream = fs.createWriteStream(filePath);
+        doc.pipe(stream);
+
+        doc.font('Helvetica').fontSize(8);
+        let y = 25;
+        const colNo = 25, colItem = colNo + 20, colQty = colItem + 90, colPrice = colQty + 15, colTotal = colPrice + 40;
+        const lineGap = 10;
+
+        // 🖼️ Logo
+        try {
+            const logoPath = path.join(__dirname, '../../frontend/assets/img/logo.png');
+            if (fs.existsSync(logoPath)) {
+                doc.image(logoPath, colNo, y, { width: 35 });
+            }
+        } catch (err) {
+            console.warn('Logo gagal dimuat:', err.message);
+        }
+
+        doc.font('Helvetica-Bold').text('FAKTUR PEMBELIAN', colNo + 45, y);
+        doc.font('Helvetica').fontSize(7.5);
+        y += lineGap;
+        doc.text('TOKO UWAIS TELUR', colNo + 45, y);
+        y += lineGap;
+        doc.font('Helvetica').fontSize(7);
+        doc.text('JL. KAMPUNG SULIMAN NO. 70,', colNo + 45, y);
+        y += lineGap;
+        doc.text('DESA MEKARSARI', colNo + 45, y);
+        y += lineGap;
+        doc.text('082125693390', colNo + 45, y);
+
+        doc.text(`${transaction.purchase_transaction_id}`, 189, 25);
+        doc.text(`${transaction.transaction_time}`, 189, 37);
+
+        y += lineGap * 2;
+        doc.font('Helvetica').fontSize(8);
+        doc.text(`Supplier : ${transaction.supplier_name}`, colNo, y);
+        y += lineGap + 2;
+        doc.text(`Alamat   : ${transaction.address}`, colNo, y);
+        y += lineGap + 5;
+
+        doc.font('Helvetica-Bold').fontSize(7);
+        y += 5;
+        doc.text('No.', colNo, y);
+        doc.text('Nama Item', colItem, y);
+        doc.text('Jml', colQty, y);
+        doc.text('Harga', colPrice, y, { width: 55, align: 'right' });
+        doc.text('Total', colTotal, y, { width: 65, align: 'right' });
+        y += lineGap;
+        doc.moveTo(colNo, y).lineTo(colTotal + 65, y).stroke();
+        y += 3;
+
+        doc.font('Helvetica');
+        let total = 0;
+        orders.forEach((item, i) => {
+            const harga = item.unit_price || 0;
+            const subtotal = item.subtotal_price || 0;
+            total += subtotal;
+
+            doc.text(`${i + 1}`, colNo, y);
+            doc.text(item.item_name, colItem, y, { width: 145 });
+            doc.text(`${item.quantity}`, colQty, y);
+            doc.text(`Rp ${harga.toLocaleString('id-ID')}`, colPrice, y, { width: 55, align: 'right' });
+            doc.text(`Rp ${subtotal.toLocaleString('id-ID')}`, colTotal, y, { width: 65, align: 'right' });
+            y += lineGap;
+        });
+
+        y += 4;
+        doc.moveTo(colNo, y).lineTo(colTotal + 65, y).stroke();
+        y += lineGap;
+        doc.font('Helvetica-Bold');
+        doc.text('Total', colPrice, y, { width: 55, align: 'right' });
+        doc.text(`Rp ${total.toLocaleString('id-ID')}`, colTotal, y, { width: 65, align: 'right' });
+        y += lineGap + 6;
+
+        doc.font('Helvetica').fontSize(8);
+        doc.text('Pembayaran Via Transfer Melalui', colNo, y);
+        y += lineGap;
+        doc.text('BRI : 0938 0101 274 6502', colNo, y);
+        y += lineGap;
+        doc.text('BCA : 7288 428 548', colNo, y);
+        y += lineGap;
+        doc.text('A/N Syarifudin Ahmad', colNo, y);
+        y += lineGap;
+
+        doc.text('Hormat Kami', colPrice - 10, y);
+        doc.text('Penerima', colTotal + 10, y);
+        y += lineGap * 2;
+        doc.text('(......................)', colPrice - 10, y);
+        doc.text('(......................)', colTotal + 10, y);
+
+        doc.end();
+        stream.on('finish', () => resolve(filePath));
+        stream.on('error', reject);
+    });
+}
 
 const purchasesController = {
     // =========================
@@ -438,26 +556,81 @@ const purchasesController = {
     // =========================
     // Cetak Nota Pembelian
     // =========================
-    viewPurchaseReceipt: async (req, res) => {
+    previewPurchaseReceipt: async (req, res) => {
+        const { id } = req.params;
+        const fileName = `nota-${id}.pdf`;
+        const filePath = path.join(__dirname, `../../temp/${fileName}`);
+
         try {
-            const { id } = req.params;
-            const { transaction, orders, payments } = await purchasesModel.getPurchaseReceiptData(id);
-
-            if (!transaction) {
-                return res.status(404).send('Transaksi pembelian tidak ditemukan');
+            if (!fs.existsSync(filePath)) {
+                await generatePurchasePDF(id, { preview: true });
             }
+            res.sendFile(filePath);
+        } catch (err) {
+            console.error("previewPurchaseReceipt error:", err.message);
+            res.status(500).send("Gagal menampilkan preview nota.");
+        }
+    },
 
-            res.render('purchases/nota', {
-                transaction,
-                orders,
-                payments
+    getPrinterList: async (req, res) => {
+        try {
+            const printers = await printer.getPrinters();
+            res.json(printers);
+        } catch (err) {
+            console.error("❌ Gagal mengambil daftar printer:", err);
+            res.status(500).json({ error: "Gagal mengambil daftar printer", detail: err.message });
+        }
+    },
+
+    getDefaultPrinter: (req, res) => {
+        try {
+            if (!fs.existsSync(configPath)) return res.json({ defaultPrinter: null });
+            const configRaw = fs.readFileSync(configPath, "utf-8");
+            const config = JSON.parse(configRaw);
+            res.json({ defaultPrinter: config.defaultPrinter || null });
+        } catch (err) {
+            console.error("Gagal baca printer default:", err.message);
+            res.status(500).json({ error: "Gagal membaca printer default" });
+        }
+    },
+
+    setDefaultPrinter: (req, res) => {
+        const { printerName } = req.body;
+        if (!printerName) return res.status(400).json({ error: "Nama printer tidak boleh kosong" });
+
+        const config = { defaultPrinter: printerName };
+        try {
+            fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+            res.json({ message: "Printer default berhasil disimpan" });
+        } catch (err) {
+            res.status(500).json({ error: "Gagal menyimpan printer default" });
+        }
+    },
+
+    printPurchaseReceipt: async (req, res) => {
+        const { id } = req.params;
+        const { printer: printerName } = req.body;
+
+        if (!printerName) {
+            return res.status(400).json({ error: "Nama printer tidak boleh kosong." });
+        }
+
+        let filePath;
+        try {
+            filePath = await generatePurchasePDF(id, { preview: false });
+
+            await printer.print(filePath, {
+                printer: printerName,
+                win32: ['-print-settings "portrait"', '-print-settings "fit"', "-silent"]
             });
 
+            return res.json({ message: `Nota berhasil dicetak ke printer "${printerName}".` });
         } catch (err) {
-            console.error('viewPurchaseReceipt error:', err);
-            res.status(500).send('Gagal menampilkan nota pembelian');
+            console.error("❌ Gagal cetak nota:", err.message);
+            if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            return res.status(500).json({ error: "Gagal mencetak nota pembelian." });
         }
-    }
+    },
 };
 
 module.exports = purchasesController;
