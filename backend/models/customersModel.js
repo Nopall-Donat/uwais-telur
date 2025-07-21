@@ -10,7 +10,7 @@ module.exports = {
                 FROM customers
                 ORDER BY datetime(
                     substr(created_at, 7, 4) || '-' || substr(created_at, 4, 2) || '-' || substr(created_at, 1, 2) || ' ' || substr(created_at, 12)
-                ) DESC
+                ) DESC LIMIT 10
             `);
         } catch (err) {
             console.error('customerModel.getAllCustomer error:', err);

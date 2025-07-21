@@ -9,7 +9,7 @@ module.exports = {
                 SELECT i.*, s.name AS supplier_name
                 FROM items i
                 JOIN suppliers s ON i.supplier_id = s.supplier_id
-                ORDER BY datetime(i.updated_at) DESC
+                ORDER BY datetime(i.updated_at) DESC LIMIT 10
             `);
         } catch (err) {
             console.error('itemsModel.getAllItems error:', err);
